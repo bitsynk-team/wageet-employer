@@ -155,7 +155,7 @@ function TransactionsContent() {
                 />
               )
             ) : (
-              <div className="mt-3 overflow-x-auto rounded-xl border border-[#e4e4e7]">
+              <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-xl border border-[#e4e4e7]">
                 <table className="w-full min-w-[820px] text-left text-sm">
                   <thead>
                     <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">

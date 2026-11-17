@@ -116,7 +116,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
           <h1 className="text-[22px] font-semibold text-[#162e25]">Employees</h1>
           <p className="text-sm text-[#526459]">Invite and manage your employees</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <div className="relative">
             <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#e4e4e7] bg-white px-3 text-xs font-medium" onClick={() => setExportOpen((open) => !open)}>
               ↓ Export
@@ -148,7 +148,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
         </label>
       </div>
 
-      <div className="mt-3 overflow-x-auto">
+      <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
@@ -184,7 +184,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
         </table>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-[#ececed] pt-3 text-xs text-[#71717a]">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#ececed] pt-3 text-xs text-[#71717a]">
         <div className="flex items-center gap-3">
           <Filter label="Show" open={sizeOpen} onToggle={() => setSizeOpen((open) => !open)} options={["15", "25", "50"]} value={pageSize} onChange={(value) => { setPageSize(value); setPage(1); setSizeOpen(false); }} />
           <p>{filtered.length} {tab === "all" ? "employees" : "invitations"}</p>
@@ -254,7 +254,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
                 </div>
               ))}
               <button type="button" className="flex h-11 w-full items-center justify-center rounded-lg border border-dashed border-[#dce4de] text-sm" onClick={() => setRows((current) => [...current, { name: "", email: "", start: "", account: "", bank: "", open: true }])}>+ Add Another Employee</button>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <button type="button" className="h-11 rounded-lg border border-[#dce4de]" onClick={() => setInviteOpen(false)}>Cancel</button>
                 <button type="button" className="h-11 whitespace-nowrap rounded-lg bg-[#0f2a1f] px-3 text-sm font-bold text-[#fffff4]" onClick={sendInvites}>{rows.length === 1 ? "Send invitation" : `Send ${rows.length} invitations`}</button>
               </div>

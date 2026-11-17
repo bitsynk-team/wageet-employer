@@ -77,18 +77,18 @@ export function DateField({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [cursor, setCursor] = useState(() => parsed ?? new Date(2026, 10, 1));
-  const [place, setPlace] = useState({ top: 0, left: 0 });
+  const [place, setPlace] = useState({ top: 0, left: 0, width: 310 });
 
   useEffect(() => setMounted(true), []);
 
   function placePopover() {
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const width = 310;
+    const width = Math.min(310, window.innerWidth - 16);
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
     const below = rect.bottom + 6;
     const top = below + 292 > window.innerHeight ? Math.max(8, rect.top - 298) : below;
-    setPlace({ top, left });
+    setPlace({ top, left, width });
   }
 
   useEffect(() => {
@@ -157,8 +157,8 @@ export function DateField({
           id={labelId}
           role="dialog"
           aria-label={`${longMonths[month]} ${year} calendar`}
-          style={{ top: place.top, left: place.left }}
-          className="fixed z-[80] w-[310px] rounded-xl border border-[#e7e9e9] bg-white p-3 shadow-[0_8px_24px_rgba(15,42,31,0.12)]"
+          style={{ top: place.top, left: place.left, width: place.width }}
+          className="fixed z-[80] max-w-[calc(100vw-16px)] rounded-xl border border-[#e7e9e9] bg-white p-3 shadow-[0_8px_24px_rgba(15,42,31,0.12)]"
         >
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="flex items-center gap-1">

@@ -13,7 +13,7 @@ export function SetupPage({ title, subtitle, eyebrow, children }: { title: strin
 }
 
 export function SetupCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <section className={cn("w-full max-w-[767px] rounded-xl bg-[#f8f8f8] px-8 py-7", className)}>{children}</section>;
+  return <section className={cn("w-full max-w-[767px] rounded-xl bg-[#f8f8f8] px-4 py-5 sm:px-8 sm:py-7", className)}>{children}</section>;
 }
 
 export function RequiredNote() {
@@ -46,11 +46,11 @@ export function SetupActions({
   stretch?: boolean;
   titleCase?: boolean;
 }) {
-  const backWidth = stretch ? "min-w-0 flex-1" : "w-[180px]";
-  const primaryWidth = stretch ? "min-w-0 flex-1" : "min-w-[180px] w-max whitespace-nowrap";
+  const backWidth = stretch ? "min-w-0 flex-1" : "w-full sm:w-[180px]";
+  const primaryWidth = stretch ? "min-w-0 flex-1" : "w-full whitespace-nowrap sm:w-max sm:min-w-[180px]";
   const type = titleCase ? "font-medium capitalize" : "font-bold";
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
       <Link href={backHref} className={cn("inline-flex h-11 items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] px-5 text-xs text-[#0f2a1f]", type, backWidth)}>
         {backLabel}
       </Link>

@@ -96,7 +96,7 @@ export default function RolesPage() {
         <section className="mt-5">
           <h2 className="font-semibold text-[#162e25]">Team members</h2>
           <p className="mt-1 text-sm text-[#4e6358]">Administrators and outstanding invitations for {portal.workspaceName}.</p>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-[#e4e4e7]">
+          <div className="mt-4 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-xl border border-[#e4e4e7]">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">{["Administrator", "Role", "Status", "Action"].map((heading) => <th key={heading} className="px-4 py-2.5 font-medium">{heading}</th>)}</tr>
@@ -132,7 +132,7 @@ export default function RolesPage() {
         <section className="mt-5">
           <h2 className="font-semibold text-[#162e25]">Custom permission sets</h2>
           <p className="mt-1 text-sm text-[#4e6358]">Group Wageet actions once, then assign the set to any custom role.</p>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-[#e4e4e7]">
+          <div className="mt-4 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-xl border border-[#e4e4e7]">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">{["Permission set", "Included actions", "Assigned to", "Action"].map((heading) => <th key={heading} className="px-4 py-2.5 font-medium">{heading}</th>)}</tr>

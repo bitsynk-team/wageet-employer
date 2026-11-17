@@ -143,7 +143,7 @@ function EmployeeDetail() {
           {withdrawals.length === 0 ? (
             <p className="mt-6 text-sm text-[#526459]">No withdrawals for this workplace yet.</p>
           ) : (
-            <div className="mt-3 overflow-x-auto">
+            <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead>
                   <tr className="text-xs text-[#71717a]">

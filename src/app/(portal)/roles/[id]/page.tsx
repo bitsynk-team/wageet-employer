@@ -36,7 +36,7 @@ export default function RoleDetailPage() {
       <div className="mt-5 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           <section className="rounded-2xl border border-[#e4e4e7] p-4">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
               <div>
                 <h2 className="font-semibold text-[#162e25]">Members</h2>
                 <p className="text-sm text-[#4e6358]">{activeCount} member{activeCount === 1 ? "" : "s"}</p>
@@ -49,7 +49,8 @@ export default function RoleDetailPage() {
               )}
             </div>
             {members.length === 0 ? <p className="mt-4 text-sm text-[#4e6358]">No members yet. Invite an administrator to use this role in {portal.workspaceName}.</p> : (
-              <table className="mt-3 w-full text-left text-sm">
+              <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
+              <table className="w-full min-w-[520px] text-left text-sm">
                 <thead><tr className="text-xs text-[#71717a]"><th className="py-2 font-medium">Administrator</th><th className="py-2 font-medium">Status</th><th /></tr></thead>
                 <tbody>
                   {members.map((person) => (
@@ -70,12 +71,13 @@ export default function RoleDetailPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </section>
           {role.id === "owner" ? (
             <p className="rounded-xl bg-[#f4f5ef] px-4 py-3 text-sm text-[#4e6358]">Protected role. The workspace owner always has full access.</p>
           ) : (
-            <section className="flex items-center justify-between gap-3 rounded-2xl bg-[#f4f5ef] px-4 py-4">
+            <section className="flex flex-col items-start justify-between gap-3 rounded-2xl bg-[#f4f5ef] px-4 py-4 sm:flex-row sm:items-center">
               <div>
                 <h2 className="font-semibold text-[#162e25]">Delete role</h2>
                 <p className="text-sm text-[#4e6358]">The role must have no members or pending invitations.</p>
@@ -92,7 +94,7 @@ export default function RoleDetailPage() {
             {roleAreas.map((area) => {
               const grant = role.access[area.id] ?? { view: false, extra: false };
               return (
-                <li key={area.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-3 text-sm">
+                <li key={area.id} className="grid grid-cols-1 items-start gap-2 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-3">
                   <span className="font-medium text-[#162e25]">{area.label}</span>
                   <Grant on={grant.view} label="View" />
                   <Grant on={grant.extra} label={area.extra} />
@@ -107,7 +109,7 @@ export default function RoleDetailPage() {
         <form onSubmit={(event) => { event.preventDefault(); const message = portal.inviteMember({ email, roleId: role.id }); if (message) { setError(message); return; } setInviteOpen(false); setEmail(""); setError(""); }} className="space-y-3">
           <Field label="Work email" error={error}><input className={inputClass} placeholder="name@company.com" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
           <p className="text-sm text-[#4e6358]">Role: {role.name}. The invitation grants access to this workspace only.</p>
-          <div className="flex justify-end gap-2"><button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setInviteOpen(false)}>Cancel</button><button type="submit" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white">Send invitation</button></div>
+          <div className="flex flex-wrap justify-end gap-2"><button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setInviteOpen(false)}>Cancel</button><button type="submit" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white">Send invitation</button></div>
         </form>
       </Modal>
       <Modal open={Boolean(member)} title={member?.status === "Invited" ? "Manage invitation" : "Remove access"} description={member?.status === "Active" ? "This administrator will lose access to the employer portal if you remove them." : member?.email} onClose={() => setManageId(null)}>

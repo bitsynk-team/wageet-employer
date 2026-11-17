@@ -145,3 +145,20 @@
     color: #f8f8f8;
   }
 }
+
+/* Grid and flex items default to min-width:auto, so a wide table stretches the page.
+   Let those items shrink and keep the horizontal scroll on the table itself. */
+#main .grid > *,
+#main .flex > :where(div, section, article, ul, ol, form, header, footer, p) {
+  min-width: 0;
+}
+
+#main .overflow-x-auto {
+  width: 100%;
+  max-width: 100%;
+}
+
+#main .overflow-x-auto th,
+#main .overflow-x-auto td {
+  white-space: nowrap;
+}

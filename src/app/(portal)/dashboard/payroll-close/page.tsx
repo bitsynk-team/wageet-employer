@@ -39,7 +39,7 @@ export default function PayrollClosePage() {
         </select>
         <button type="button" className="inline-flex h-10 items-center rounded-lg bg-[#0f2a1f] px-3 text-xs font-bold text-[#fffff4]" onClick={() => portal.notify("Cut-off review saved for November 2026.")}>Review cut-off</button>
       </div>
-      <div className="mt-3 overflow-x-auto rounded-2xl border border-[#e7ebe4]">
+      <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-2xl border border-[#e7ebe4]">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead>
             <tr className="bg-[#f6f7f4] text-xs text-[#71717a]">

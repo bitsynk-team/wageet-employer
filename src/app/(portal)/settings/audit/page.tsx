@@ -38,7 +38,7 @@ export default function AuditLogPage() {
       {rows.length === 0 ? (
         <p className="mt-6 text-sm text-[#4e6358]">No matching events. Clear a filter to see recorded workspace actions.</p>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#e4e4e7]">
+        <div className="mt-4 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-xl border border-[#e4e4e7]">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">{["Action", "Administrator", "Resource", "Recorded at", "Outcome"].map((heading) => <th key={heading} className="px-4 py-2.5 font-medium">{heading}</th>)}</tr>
