@@ -20,7 +20,7 @@ import {
   transactions as seedTransactions,
   workspace,
 } from "@/lib/mock-data";
-import type { Delivery, Employee, FundingPhase, IntegrationSource, Notice, Organisation, Payroll, PermissionSet, Policy, Profile, Role, RoleAccess, SetupBank, SupportRequest, TeamMember, Transaction, WorkRecord } from "@/lib/types";
+import type { Delivery, Employee, FundingPhase, IntegrationSource, InvitationResult, Notice, Organisation, Payroll, PermissionSet, Policy, Profile, Role, RoleAccess, SetupBank, SupportRequest, TeamMember, Transaction, WorkRecord } from "@/lib/types";
 
 type Toast = { message: string } | null;
 
@@ -106,6 +106,8 @@ type PortalStore = {
   fundingPhase: FundingPhase;
   fundingAmount: number;
   setupBanks: SetupBank[];
+  invitationResults: InvitationResult[];
+  saveInvitationResults: (rows: InvitationResult[]) => void;
   markEmployeesAdded: () => void;
   saveSetupBank: (email: string, details: string) => void;
   markRecordsSubmitted: () => void;
@@ -153,6 +155,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
     { email: "ada@acmefoods.com", invitation: "Invitation sent", details: "Not provided", bankStatus: "Not added" },
     { email: "sam@acmefoods.com", invitation: "Invitation sent", details: "Access Bank · •••• 6791", bankStatus: "Verification failed" },
   ]);
+  const [invitationResults, setInvitationResults] = useState<InvitationResult[]>([]);
 
   const value = useMemo<PortalStore>(
     () => ({
@@ -254,7 +257,6 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
           delivery: "Pending",
         };
         setEmployees((current) => [person, ...current]);
-        setToast({ message: `Invitation prepared for ${person.name}.` });
         return null;
       },
       saveBank: (id, bank) => {
@@ -532,6 +534,20 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
       fundingPhase,
       fundingAmount,
       setupBanks,
+      invitationResults,
+      saveInvitationResults: (rows) => {
+        setInvitationResults(rows);
+        setEmployeesAdded(rows.some((row) => row.status === "Invite Sent"));
+        const invited = rows.filter((row) => row.status === "Invite Sent");
+        if (invited.length === 0) return;
+        setSetupBanks(invited.map((row) => ({
+          email: row.email,
+          invitation: "Invitation sent",
+          details: row.bank === "Verified" ? "Verified" : row.bank === "Verification failed" ? "Account entered" : "Not provided",
+          bankStatus: row.bank === "Verified" ? "Verified" : row.bank === "Verification failed" ? "Verification failed" : "Not added",
+        })));
+        setBanksReady(invited.every((row) => row.bank === "Verified"));
+      },
       markEmployeesAdded: () => setEmployeesAdded(true),
       saveSetupBank: (email, details) => {
         setSetupBanks((current) => {
@@ -588,6 +604,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
       requests,
       roles,
       scheduledPolicy,
+      invitationResults,
       setupBanks,
       team,
       toast,

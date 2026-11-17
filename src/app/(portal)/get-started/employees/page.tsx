@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DateField } from "@/components/portal/date-field";
 import { RequiredNote, SetupActions, SetupCard, SetupPage, SupportLine, fieldClass, labelClass } from "@/components/portal/setup-ui";
 import { usePortal } from "@/components/portal/store";
+import { parseInvitationCsv, resultFromInvite } from "@/lib/invitation-results";
 import { cn } from "cn";
 
 type Row = { email: string; start: string; account: string; bank: string };
@@ -29,23 +30,39 @@ export default function AddEmployeesPage() {
     const next = rows.map((row) => (!row.email.includes("@") || !row.start.trim() ? "Enter each email and start date." : ""));
     setErrors(next);
     if (next.some(Boolean)) return;
-    rows.forEach((row) => {
-      const name = row.email.split("@")[0];
-      portal.inviteEmployee({ name, email: row.email.trim(), role: "Member" });
+    const results = rows.map((row, index) => resultFromInvite(row, index + 1));
+    results.forEach((row) => {
+      if (row.status !== "Invite Sent") return;
+      const name = row.email.split("@")[0] || "Employee";
+      portal.inviteEmployee({ name, email: row.email, role: "Member", joined: row.start });
     });
-    portal.markEmployeesAdded();
-    router.push("/get-started");
+    portal.saveInvitationResults(results);
+    router.push("/get-started/employees/results");
   }
 
   function onFile(file: File | undefined) {
     if (!file) return;
-    if (!/\.(csv|xlsx)$/i.test(file.name)) {
-      setFileError("Use an Excel (.xlsx) or CSV file. No invitations have been sent.");
+    if (!/\.csv$/i.test(file.name)) {
+      setFileError("Use the CSV template so Wageet can show invitation results. No invitations have been sent.");
       return;
     }
-    setFileError("");
-    portal.markEmployeesAdded();
-    router.push("/get-started");
+    const reader = new FileReader();
+    reader.onload = () => {
+      const results = parseInvitationCsv(String(reader.result ?? ""));
+      if (!results) {
+        setFileError("Wageet could not read that file. Use the invitation template. No invitations have been sent.");
+        return;
+      }
+      setFileError("");
+      results.forEach((row) => {
+        if (row.status !== "Invite Sent") return;
+        const name = row.email.split("@")[0] || "Employee";
+        portal.inviteEmployee({ name, email: row.email, role: "Member", joined: row.start });
+      });
+      portal.saveInvitationResults(results);
+      router.push("/get-started/employees/results");
+    };
+    reader.readAsText(file);
   }
 
   return (
@@ -125,7 +142,7 @@ export default function AddEmployeesPage() {
               <img src="/icons/setup/plus.svg" alt="" className="size-5" />
               Add Another Employee
             </button>
-            <SetupActions backHref="/get-started" primary="Send invitation" onPrimary={send} titleCase />
+            <SetupActions backHref="/get-started" primary={rows.length === 1 ? "Send invitation" : `Send ${rows.length} invitations`} onPrimary={send} />
           </div>
         ) : (
           <div className="mt-6 max-w-[696px]">

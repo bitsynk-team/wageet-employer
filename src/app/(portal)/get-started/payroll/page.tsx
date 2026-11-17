@@ -32,7 +32,7 @@ export default function PayrollSetupPage() {
         ? { start: "Monday", end: "Sunday", payday: "Day after the week ends", cutoff: "2 days before payday" }
         : frequency === "Daily"
           ? { start: "One workday", end: "One workday", payday: "Following calendar day", cutoff: "23:59 WAT" }
-          : dates;
+          : presentMonthly(dates);
     portal.savePayroll({ frequency, ...cycle });
     router.push("/get-started");
   }
@@ -134,10 +134,27 @@ export default function PayrollSetupPage() {
   );
 }
 
+const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function asDmy(value: string, fallback: string) {
   const date = parsePortalDate(value);
   if (!date) return fallback;
   return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+}
+
+function presentMonthly(dates: { start: string; end: string; payday: string; cutoff: string }) {
+  const dated = (value: string) => {
+    const date = parsePortalDate(value);
+    return date ? `${date.getDate()} ${shortMonths[date.getMonth()]} ${date.getFullYear()}` : value;
+  };
+  const payday = parsePortalDate(dates.payday);
+  const cutoff = parsePortalDate(dates.cutoff);
+  return {
+    start: dated(dates.start),
+    end: dated(dates.end),
+    payday: payday ? `${payday.getDate()} ${shortMonths[payday.getMonth()]}` : dates.payday,
+    cutoff: cutoff ? `${cutoff.getDate()} ${shortMonths[cutoff.getMonth()]} · 23:59 WAT` : dates.cutoff,
+  };
 }
 
 function MonthlyFields({ dates, onChange }: { dates: { start: string; end: string; payday: string; cutoff: string }; onChange: (patch: Partial<{ start: string; end: string; payday: string; cutoff: string }>) => void }) {

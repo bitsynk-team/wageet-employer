@@ -103,6 +103,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
         return;
       }
     }
+    portal.notify(rows.length === 1 ? "Invitation sent." : `${rows.length} invitations sent.`);
     setInviteOpen(false);
     setTab("invited");
     setRows([{ name: "", email: "", start: "", account: "", bank: "", open: true }]);
@@ -255,7 +256,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
               <button type="button" className="flex h-11 w-full items-center justify-center rounded-lg border border-dashed border-[#dce4de] text-sm" onClick={() => setRows((current) => [...current, { name: "", email: "", start: "", account: "", bank: "", open: true }])}>+ Add Another Employee</button>
               <div className="grid grid-cols-2 gap-3">
                 <button type="button" className="h-11 rounded-lg border border-[#dce4de]" onClick={() => setInviteOpen(false)}>Cancel</button>
-                <button type="button" className="h-11 rounded-lg bg-[#0f2a1f] text-sm font-bold text-[#fffff4]" onClick={sendInvites}>Send invitation</button>
+                <button type="button" className="h-11 whitespace-nowrap rounded-lg bg-[#0f2a1f] px-3 text-sm font-bold text-[#fffff4]" onClick={sendInvites}>{rows.length === 1 ? "Send invitation" : `Send ${rows.length} invitations`}</button>
               </div>
             </div>
           </div>

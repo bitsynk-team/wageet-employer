@@ -50,7 +50,7 @@ export default function GetStartedPage() {
           expanded={open === "employees"}
           onToggle={() => setOpen(open === "employees" ? null : "employees")}
         >
-          <Step title="Add Employees" body="Add employee details and send their invitations." href="/get-started/employees" action={progress.invited ? "Manage Invitation" : "Add Employees"} done={progress.invited} />
+          <Step title="Add Employees" body="Add employee details and send their invitations." href={progress.invited ? "/get-started/employees/results" : "/get-started/employees"} action={progress.invited ? "Manage Invitation" : "Add Employees"} done={progress.invited} />
           <Step title="Complete Bank Details" body="Add and verify bank details for employees who still need them." href="/get-started/banks" action="Complete details" done={progress.banks} />
         </Section>
 
