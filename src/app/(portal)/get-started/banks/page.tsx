@@ -28,7 +28,7 @@ export default function SetupBanksPage() {
 
   return (
     <SetupPage title="Complete Bank Details" subtitle="Add or correct bank details for employees who still need them.">
-      <div className="overflow-x-auto rounded-2xl border border-[#e7ebe4] bg-white">
+      <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-2xl border border-[#e7ebe4] bg-white">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="bg-[#f6f7f4] text-xs text-[#71717a]">

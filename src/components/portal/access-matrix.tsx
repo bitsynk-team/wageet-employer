@@ -21,7 +21,7 @@ export function AccessMatrix({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
       <table className="w-full min-w-[640px] text-left text-sm">
         <thead>
           <tr className="text-xs text-[#71717a]">

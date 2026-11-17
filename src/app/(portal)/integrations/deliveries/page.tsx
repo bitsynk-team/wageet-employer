@@ -20,7 +20,7 @@ export default function DeliveryHistoryPage() {
         <div className="px-4 py-3">
           <h2 className="font-semibold text-[#162e25]">Recent deliveries</h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">

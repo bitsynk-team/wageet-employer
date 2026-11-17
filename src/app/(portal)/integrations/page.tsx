@@ -123,7 +123,7 @@ export default function IntegrationsPage() {
           <h2 className="font-semibold text-[#162e25]">Recent deliveries</h2>
           <p className="text-sm text-[#4e6358]">See which records arrived and which need a closer look.</p>
         </div>
-        <div className="overflow-x-auto">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">

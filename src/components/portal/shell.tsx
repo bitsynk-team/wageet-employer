@@ -262,14 +262,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
       ) : null}
       <div className="min-w-0 flex-1 p-3">
         <div className="flex min-h-[calc(100svh-24px)] flex-col overflow-hidden rounded-2xl border border-[#e4e4e7] bg-white shadow-[0px_1.5px_2px_-1px_rgba(3,7,18,0.05)]">
-          <header className="flex h-16 items-center justify-between border-b border-[#ececed] px-4">
-            <div className="flex items-center gap-2">
-              <button type="button" className="inline-flex size-8 items-center justify-center rounded-lg lg:hidden" aria-label="Open navigation" onClick={() => setMobileOpen(true)}>
+          <header className="flex h-16 items-center justify-between gap-2 border-b border-[#ececed] px-3 sm:px-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <button type="button" className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg lg:hidden" aria-label="Open navigation" onClick={() => setMobileOpen(true)}>
                 <Icon name="sidebar" className="size-5" />
               </button>
-              <p className="text-base font-medium tracking-[-0.4px] text-[#09090b]">{title}</p>
+              <p className="truncate text-base font-medium tracking-[-0.4px] text-[#09090b]">{title}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               {quietHeader ? null : <button
                 type="button"
                 className="relative inline-flex size-8 items-center justify-center rounded-full border border-[#e4e4e7] bg-white"
@@ -320,7 +320,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </ul>
             </div>
           ) : null}
-          <div id="main" className="flex-1 overflow-auto">
+          <div id="main" className="min-w-0 flex-1 overflow-auto">
             {children}
           </div>
         </div>
@@ -354,8 +354,8 @@ function SignOutDialog({ onClose, onConfirm }: { onClose: () => void; onConfirm:
         <img src="/icons/logout-badge.svg" alt="" className="size-9" />
         <h2 id="sign-out-title" className="mt-3 text-2xl font-semibold tracking-[-0.3px] text-[#142e24]">Sign out of Wageet?</h2>
         <p className="mt-2 text-sm leading-snug text-[#52655b]">This ends your administrator session on this device. You can sign in again with your work account.</p>
-        <div className="mt-4 border-t border-[#dfe5dd] pt-4">
-          <div className="flex justify-end gap-2">
+          <div className="mt-4 border-t border-[#dfe5dd] pt-4">
+          <div className="flex flex-wrap justify-end gap-2">
             <button type="button" className="h-10 rounded-lg border border-[#dfe5dd] bg-white px-3 text-sm font-medium text-[#142e24]" onClick={onClose}>Stay signed in</button>
             <button type="button" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#a44035] px-3 text-sm font-medium text-white" onClick={onConfirm}>
               <img src="/icons/logout.svg" alt="" className="size-[15px]" />

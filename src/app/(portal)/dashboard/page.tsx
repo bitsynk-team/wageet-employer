@@ -11,11 +11,11 @@ function DashIcon({ name, className = "size-4" }: { name: string; className?: st
   return <img src={`/icons/dash/${name}.svg`} alt="" className={`${className} max-w-none shrink-0`} />;
 }
 
-const chart = [
-  { label: "2 Nov", paid: 10000, other: 0 },
-  { label: "6 Nov", paid: 0, other: 6500 },
-  { label: "5 Nov", paid: 0, other: 5000 },
-  { label: "6 Nov", paid: 12500, other: 8000 },
+const withdrawalDays = [
+  { label: "3 Nov", paid: 44, other: 0 },
+  { label: "4 Nov", paid: 0, other: 29 },
+  { label: "5 Nov", paid: 0, other: 22 },
+  { label: "6 Nov", paid: 56, other: 36 },
 ];
 const months = ["November 2026", "September 2026"];
 
@@ -115,7 +115,7 @@ export default function DashboardPage() {
               <p className="mt-2 text-sm font-medium text-[#162e25]">1 deposit confirmed · {naira(received || 50000)}</p>
               <div className="mt-1 flex items-center justify-between gap-3">
                 <p className="text-xs text-[#4e6358]">Review deposit details in funding history.</p>
-                <button type="button" className="text-[13px] font-medium text-[#1a6849]" onClick={() => setCycleOpen(true)}>View cycle</button>
+                <button type="button" className="shrink-0 whitespace-nowrap text-[13px] font-medium text-[#1a6849]" onClick={() => setCycleOpen(true)}>View cycle</button>
               </div>
             </div>
           )}
@@ -204,7 +204,7 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
@@ -245,33 +245,53 @@ export default function DashboardPage() {
         </section>
 
         <div className="flex flex-col gap-4">
-          <section className="rounded-[18px] border border-[#dfe5df] p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-[#162e25]">Withdrawal requests</h2>
-              <span className="text-xs text-[#71717a]">3–6 Nov</span>
+          <section className="flex flex-col gap-1 rounded-[18px] border border-[#dfe5df] bg-white p-[14px]">
+            <div className="flex h-[29px] items-center justify-between gap-3">
+              <h2 className="text-[18px] leading-[23px] font-semibold text-[#162e25]">Withdrawal requests</h2>
+              {month === "September 2026" ? null : <p className="shrink-0 text-[12px] leading-[15px] font-medium whitespace-nowrap text-[#4e6358]">3–6 Nov</p>}
             </div>
-            <div className="mt-2 flex gap-4 text-xs text-[#4e6358]">
-              <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-[#153a2b]" /> Paid</span>
-              <span className="inline-flex items-center gap-1.5"><span className="size-2 rounded-full bg-[#f4a24b]" /> Other requests</span>
-            </div>
-            <div className="mt-4 flex h-40 gap-3">
-              <div className="flex h-32 flex-col justify-between text-[10px] text-[#98a29c]">
-                <span>20k</span>
-                <span>10k</span>
-                <span>0</span>
-              </div>
-              <div className="flex flex-1 items-end gap-4">
-                {chart.map((bar, index) => (
-                  <div key={`${bar.label}-${index}`} className="flex flex-1 flex-col items-center gap-2">
-                    <div className="flex h-32 w-6 flex-col justify-end overflow-hidden rounded-sm">
-                      {bar.other ? <div className="w-full bg-[#f4a24b]" style={{ height: `${(bar.other / 20000) * 100}%`, backgroundImage: "url(/icons/dash/hatch.svg)", backgroundSize: "8px 8px" }} /> : null}
-                      {bar.paid ? <div className="w-full bg-[#153a2b]" style={{ height: `${(bar.paid / 20000) * 100}%` }} /> : null}
-                    </div>
-                    <span className="text-[11px] text-[#71717a]">{bar.label}</span>
+            {month === "September 2026" ? (
+              <>
+                <div className="relative mt-2 h-[66px] rounded-[10px] bg-[#f4f5ef]" aria-hidden="true">
+                  <span className="absolute top-[18px] bottom-[16px] left-[31px] w-px bg-[#d9ded4]" />
+                  <span className="absolute right-4 bottom-[16px] left-[29px] h-px bg-[#d9ded4]" />
+                </div>
+                <p className="mt-2 text-sm font-semibold text-[#162e25]">No requests this cycle</p>
+                <p className="text-[13px] leading-[17px] text-[#4e6358]">The chart starts with the first employee request.</p>
+              </>
+            ) : (
+              <>
+                <div className="flex h-5 items-center gap-3 text-[11px] leading-[14px] text-[#4e6358]">
+                  <span className="inline-flex items-center gap-[5px]"><span className="size-[9px] rounded-[3px] bg-[#153a2b]" />Paid</span>
+                  <span className="inline-flex items-center gap-[5px]"><span className="size-[9px] rounded-[3px] bg-[#f18b64]" />Other requests</span>
+                </div>
+                <div className="relative h-[143px] w-full rounded-[10px] bg-[#f4f5ef]">
+                  <span className="absolute top-[15px] left-[5px] text-[9px] leading-3 text-[#607065]">₦20k</span>
+                  <span className="absolute top-[59px] left-[5px] text-[9px] leading-3 text-[#607065]">₦10k</span>
+                  <span className="absolute top-[104px] left-[5px] text-[9px] leading-3 text-[#607065]">₦0</span>
+                  <span className="absolute top-[21px] right-3 left-[37px] h-px bg-[#d9ded4]" />
+                  <span className="absolute top-[65px] right-3 left-[37px] h-px bg-[#d9ded4]" />
+                  <span className="absolute top-[110px] right-3 left-[37px] h-px bg-[#d9ded4]" />
+                  <div className="absolute top-[21px] right-2 left-[37px] grid h-[89px] grid-cols-4">
+                    {withdrawalDays.map((day) => (
+                      <div key={day.label} className="flex h-full flex-col items-center justify-end">
+                        {day.other ? (
+                          <div className="relative w-7 overflow-hidden rounded-[3px] bg-[#f18b64]" style={{ height: day.other }}>
+                            <img src="/icons/dash/hatch.svg" alt="" className="absolute inset-0 h-full w-full max-w-none" />
+                          </div>
+                        ) : null}
+                        {day.paid ? <div className="w-7 rounded-[3px] bg-[#153a2b]" style={{ height: day.paid }} /> : null}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="absolute top-[117px] right-2 left-[37px] grid grid-cols-4">
+                    {withdrawalDays.map((day) => (
+                      <span key={day.label} className="text-center text-[11px] leading-[14px] text-[#4e6358]">{day.label}</span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </section>
           <section className="rounded-[18px] border border-[#dfe5df] p-4">
             <h2 className="font-semibold text-[#162e25]">Needs attention</h2>

@@ -109,7 +109,7 @@ function RecordsDirectory() {
               <input className="h-9 w-full rounded-lg border border-[#e4e4e7] bg-white pr-3 pl-9 text-sm" placeholder="Search employee or ID" value={query} onChange={(event) => setQuery(event.target.value)} />
             </label>
           </div>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
                 <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
@@ -139,7 +139,7 @@ function RecordsDirectory() {
           </div>
         </>
       ) : (
-        <div className="mt-3 overflow-x-auto">
+        <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">

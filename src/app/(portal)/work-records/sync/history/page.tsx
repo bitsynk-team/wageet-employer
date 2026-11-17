@@ -15,7 +15,8 @@ export default function DeliveryHistoryPage() {
       <p className="mt-1 text-sm text-[#526459]">Payroll API · Scheduled deliveries and recovery</p>
       <section className="mt-4 overflow-hidden rounded-2xl border border-[#e6e8e3]">
         <h2 className="px-4 py-3 font-semibold text-[#0f2a1f]">Recent payroll deliveries</h2>
-        <table className="w-full text-left text-sm">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
               {["Expected (WAT)", "Last confirmed work date", "Status", "Action"].map((heading) => (
@@ -34,6 +35,7 @@ export default function DeliveryHistoryPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </section>
     </div>
   );

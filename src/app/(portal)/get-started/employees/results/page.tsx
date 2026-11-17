@@ -21,7 +21,7 @@ export default function InvitationResultsPage() {
     <div className="px-4 py-4">
       <h1 className="text-lg font-medium text-[#09090b]">Invitation results</h1>
       <p className="mt-1 text-sm text-[#71717b]">{rows.length ? invitationResultSubtitle(rows) : "No invitations have been sent yet."}</p>
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-[#e7ebe4] bg-white">
+      <div className="mt-4 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap rounded-2xl border border-[#e7ebe4] bg-white">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="bg-[#f6f6f6] text-xs text-[#52525c]">
@@ -52,9 +52,9 @@ export default function InvitationResultsPage() {
             ))}
           </tbody>
         </table>
-        <div className="flex flex-wrap gap-4 px-4 pt-2 pb-4">
-          <Link href="/get-started" className="inline-flex h-11 w-[180px] items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] text-xs font-medium text-[#0f2a1f]">Close</Link>
-          <Link href="/get-started/banks" className="inline-flex h-11 w-[180px] items-center justify-center rounded-lg bg-[#0f2a1f] px-3 text-xs font-bold text-[#fffff4]">Review Account Details</Link>
+        <div className="flex flex-col gap-3 px-4 pt-2 pb-4 sm:flex-row">
+          <Link href="/get-started" className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] text-xs font-medium text-[#0f2a1f] sm:w-[180px]">Close</Link>
+          <Link href="/get-started/banks" className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#0f2a1f] px-3 text-xs font-bold text-[#fffff4] sm:w-[180px]">Review Account Details</Link>
         </div>
         <div className="px-4 pb-4">
           <SupportLine align="left" />

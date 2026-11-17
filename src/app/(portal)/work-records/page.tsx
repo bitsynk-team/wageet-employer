@@ -37,7 +37,7 @@ export default function WorkRecordsPage() {
           <h1 className="text-[22px] font-semibold text-[#162e25]">Work records</h1>
           <p className="max-w-xl text-sm text-[#526459]">See where earnings come from, how current they are and what needs your attention.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href="/work-records/sources" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#dfe5dd] px-3 text-sm font-medium text-[#1a6849]">
             <img src="/icons/records/settings.svg" alt="" className="size-4" />
             Manage sources
@@ -89,7 +89,7 @@ export default function WorkRecordsPage() {
         {portal.attention.length === 0 ? (
           <p className="px-4 pb-4 text-sm text-[#4e6358]">All caught up. There are no records waiting for review.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
             <table className="w-full min-w-[680px] text-left text-sm">
               <thead>
                 <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
@@ -117,7 +117,7 @@ export default function WorkRecordsPage() {
 
       <section className="mt-4 mb-4 overflow-hidden rounded-2xl border border-[#e4e4e7]">
         <h2 className="px-4 py-3 font-semibold text-[#162e25]">Latest source activity</h2>
-        <div className="overflow-x-auto">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
           <table className="w-full min-w-[680px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">

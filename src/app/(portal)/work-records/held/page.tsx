@@ -24,7 +24,8 @@ export default function HeldRecordsPage() {
         {open.length === 0 ? (
           <p className="px-4 pb-4 text-sm text-[#17803d]">All held records have been resolved.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
+          <table className="w-full min-w-[680px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
                 {["Employee or source ID", "Reason held", "Work date", "Action"].map((heading) => (
@@ -43,6 +44,7 @@ export default function HeldRecordsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         <div className="flex justify-end px-4 py-3">
           <OutlineLink href="/work-records">Back to work records</OutlineLink>

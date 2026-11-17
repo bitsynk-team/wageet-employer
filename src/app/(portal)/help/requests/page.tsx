@@ -28,7 +28,7 @@ export default function RequestsPage() {
       ) : (
         <section className="rounded-2xl border border-[#e4e4e7]">
           <h2 className="px-4 pt-4 text-base font-semibold text-[#162e25]">Recent requests</h2>
-          <div className="mt-3 overflow-x-auto">
+          <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain [&_th]:whitespace-nowrap">
             <div className="min-w-[720px]">
               <div className="grid grid-cols-[1.6fr_1fr_0.7fr_0.7fr] bg-[#f4f5ef] px-4 py-2 text-xs text-[#666e6d]">
                 <span>Request</span>

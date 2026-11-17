@@ -97,9 +97,9 @@ function Section({
 }) {
   return (
     <section className="w-full rounded-2xl border border-[#dce4de] bg-white">
-      <button type="button" className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left" onClick={onToggle} aria-expanded={expanded}>
-        <span className="text-sm font-medium text-[#162e25]">{title}</span>
-        <span className="flex items-center gap-2 text-xs font-medium text-[#162e25]">
+      <button type="button" className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left sm:px-5" onClick={onToggle} aria-expanded={expanded}>
+        <span className="min-w-0 truncate text-sm font-medium text-[#162e25]">{title}</span>
+        <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-[#162e25]">
           <span className="h-[3px] w-[60px] overflow-hidden rounded-full bg-[#e7e9e9]">
             <span className="block h-full bg-[#153a2b]" style={{ width: `${(done / total) * 100}%` }} />
           </span>

@@ -78,8 +78,8 @@ function ConflictReview() {
   return (
     <Frame title="Compare work records" meta="Payroll API · Tomi Adebayo · EMP002 · 12 Nov 2026">
       <RecordCard title="Changed earnings">
-        <div className="mt-3 overflow-hidden rounded-xl border border-[#eef0ea]">
-          <table className="w-full text-left text-sm">
+        <div className="mt-3 max-w-full overflow-x-auto overscroll-x-contain rounded-xl border border-[#eef0ea] [&_th]:whitespace-nowrap">
+          <table className="w-full min-w-[520px] text-left text-sm">
             <thead>
               <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
                 {["Version", "Hours", "Earned amount"].map((heading) => <th key={heading} className="px-3 py-2 font-medium">{heading}</th>)}
