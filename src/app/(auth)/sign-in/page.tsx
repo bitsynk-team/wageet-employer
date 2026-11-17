@@ -1,60 +1,49 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Logo } from "@/components/logo";
-import { cn } from "cn";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-};
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Field, inputClass, PrimaryButton } from "@/components/portal/ui";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
   return (
-    <main id="main" className="flex flex-1 items-center justify-center bg-canvas px-4 py-12">
+    <main id="main" className="flex flex-1 items-center justify-center bg-[#f8f8f8] px-4 py-12">
       <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 inline-flex">
-          <Logo priority />
+        <Link href="/dashboard">
+          <img src="/icons/wordmark.svg" alt="Wageet" width={75} height={24} className="mb-8 h-6 w-[75px]" />
         </Link>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Sign in</CardTitle>
-            <CardDescription>
-              Use the work email for the workplace you manage. Account sign-in is the next piece to connect.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Work email</FieldLabel>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@company.com"
-                  className="h-10 bg-white"
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  className="h-10 bg-white"
-                />
-                <FieldDescription>Sign-in does not check these fields yet.</FieldDescription>
-              </Field>
-              <Link href="/" className={cn(buttonVariants({ size: "lg" }), "h-10 w-full")}>
-                Continue to the portal
-              </Link>
-            </FieldGroup>
-          </CardContent>
-        </Card>
+        <form
+          className="rounded-2xl border border-[#e4e4e7] bg-white p-6 shadow-[0px_1.5px_2px_-1px_rgba(3,7,18,0.05)]"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              setError("Enter the work email for this workspace.");
+              return;
+            }
+            if (password.length < 8) {
+              setError("Password must be at least 8 characters.");
+              return;
+            }
+            router.push("/dashboard");
+          }}
+        >
+          <h1 className="text-xl font-semibold text-[#0f2a1f]">Sign in</h1>
+          <p className="mt-1 text-sm text-[#526459]">Use the administrator email for the workplace you manage.</p>
+          <div className="mt-4 space-y-3">
+            <Field label="Work email">
+              <input className={inputClass} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+            </Field>
+            <Field label="Password" error={error}>
+              <input className={inputClass} type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} />
+            </Field>
+            <PrimaryButton type="submit" className="w-full">Continue</PrimaryButton>
+          </div>
+        </form>
       </div>
     </main>
   );
