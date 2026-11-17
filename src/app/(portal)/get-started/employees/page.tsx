@@ -29,10 +29,13 @@ export default function AddEmployeesPage() {
     const next = rows.map((row) => (!row.email.includes("@") || !row.start.trim() ? "Enter each email and start date." : ""));
     setErrors(next);
     if (next.some(Boolean)) return;
+    let sent = 0;
     rows.forEach((row) => {
       const name = row.email.split("@")[0];
-      portal.inviteEmployee({ name, email: row.email.trim(), role: "Member" });
+      const message = portal.inviteEmployee({ name, email: row.email.trim(), role: "Member" });
+      if (!message) sent += 1;
     });
+    if (sent > 0) portal.notify(sent === 1 ? "Invitation sent." : `${sent} invitations sent.`);
     portal.markEmployeesAdded();
     router.push("/get-started");
   }
@@ -125,7 +128,7 @@ export default function AddEmployeesPage() {
               <img src="/icons/setup/plus.svg" alt="" className="size-5" />
               Add Another Employee
             </button>
-            <SetupActions backHref="/get-started" primary="Send invitation" onPrimary={send} titleCase />
+            <SetupActions backHref="/get-started" primary={rows.length === 1 ? "Send invitation" : `Send ${rows.length} invitations`} onPrimary={send} />
           </div>
         ) : (
           <div className="mt-6 max-w-[696px]">

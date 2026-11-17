@@ -46,14 +46,15 @@ export function SetupActions({
   stretch?: boolean;
   titleCase?: boolean;
 }) {
-  const width = stretch ? "min-w-0 flex-1" : "w-[180px]";
+  const backWidth = stretch ? "min-w-0 flex-1" : "w-[180px]";
+  const primaryWidth = stretch ? "min-w-0 flex-1" : "min-w-[180px] w-max whitespace-nowrap";
   const type = titleCase ? "font-medium capitalize" : "font-bold";
   return (
     <div className="flex flex-wrap gap-4">
-      <Link href={backHref} className={cn("inline-flex h-11 items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] px-5 text-xs text-[#0f2a1f]", type, width)}>
+      <Link href={backHref} className={cn("inline-flex h-11 items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] px-5 text-xs text-[#0f2a1f]", type, backWidth)}>
         {backLabel}
       </Link>
-      <button type="button" onClick={onPrimary} className={cn("inline-flex h-11 items-center justify-center rounded-lg bg-[#0f2a1f] px-5 text-xs text-[#fffff4]", type, width)}>
+      <button type="button" onClick={onPrimary} className={cn("inline-flex h-11 items-center justify-center rounded-lg bg-[#0f2a1f] px-5 text-xs text-[#fffff4]", type, primaryWidth)}>
         {primary}
       </button>
     </div>

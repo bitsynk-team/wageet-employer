@@ -254,7 +254,6 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
           delivery: "Pending",
         };
         setEmployees((current) => [person, ...current]);
-        setToast({ message: `Invitation prepared for ${person.name}.` });
         return null;
       },
       saveBank: (id, bank) => {
