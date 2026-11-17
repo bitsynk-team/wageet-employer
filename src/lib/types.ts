@@ -182,6 +182,14 @@ export type SetupBank = {
   bankStatus: string;
 };
 
+export type InvitationResult = {
+  email: string;
+  start: string;
+  status: "Invite Sent" | "Needs correction";
+  bank: "Verified" | "Missing" | "Incomplete" | "Verification failed";
+  row: number;
+};
+
 export type FundingPhase = "idle" | "transfer" | "confirming" | "done" | "expired";
 
 export type Profile = {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DateField } from "@/components/portal/date-field";
 import { RequiredNote, SetupActions, SetupCard, SetupPage, SupportLine, fieldClass, labelClass } from "@/components/portal/setup-ui";
 import { usePortal } from "@/components/portal/store";
+import { parseInvitationCsv, resultFromInvite } from "@/lib/invitation-results";
 import { cn } from "cn";
 
 type Row = { email: string; start: string; account: string; bank: string };
@@ -29,26 +30,39 @@ export default function AddEmployeesPage() {
     const next = rows.map((row) => (!row.email.includes("@") || !row.start.trim() ? "Enter each email and start date." : ""));
     setErrors(next);
     if (next.some(Boolean)) return;
-    let sent = 0;
-    rows.forEach((row) => {
-      const name = row.email.split("@")[0];
-      const message = portal.inviteEmployee({ name, email: row.email.trim(), role: "Member" });
-      if (!message) sent += 1;
+    const results = rows.map((row, index) => resultFromInvite(row, index + 1));
+    results.forEach((row) => {
+      if (row.status !== "Invite Sent") return;
+      const name = row.email.split("@")[0] || "Employee";
+      portal.inviteEmployee({ name, email: row.email, role: "Member", joined: row.start });
     });
-    if (sent > 0) portal.notify(sent === 1 ? "Invitation sent." : `${sent} invitations sent.`);
-    portal.markEmployeesAdded();
-    router.push("/get-started");
+    portal.saveInvitationResults(results);
+    router.push("/get-started/employees/results");
   }
 
   function onFile(file: File | undefined) {
     if (!file) return;
-    if (!/\.(csv|xlsx)$/i.test(file.name)) {
-      setFileError("Use an Excel (.xlsx) or CSV file. No invitations have been sent.");
+    if (!/\.csv$/i.test(file.name)) {
+      setFileError("Use the CSV template so Wageet can show invitation results. No invitations have been sent.");
       return;
     }
-    setFileError("");
-    portal.markEmployeesAdded();
-    router.push("/get-started");
+    const reader = new FileReader();
+    reader.onload = () => {
+      const results = parseInvitationCsv(String(reader.result ?? ""));
+      if (!results) {
+        setFileError("Wageet could not read that file. Use the invitation template. No invitations have been sent.");
+        return;
+      }
+      setFileError("");
+      results.forEach((row) => {
+        if (row.status !== "Invite Sent") return;
+        const name = row.email.split("@")[0] || "Employee";
+        portal.inviteEmployee({ name, email: row.email, role: "Member", joined: row.start });
+      });
+      portal.saveInvitationResults(results);
+      router.push("/get-started/employees/results");
+    };
+    reader.readAsText(file);
   }
 
   return (
