@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/portal/icons";
+import { Modal } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 import type { Policy } from "@/lib/types";
 import { naira } from "@/lib/mock-data";
@@ -24,7 +25,15 @@ function ConfigurePolicy() {
   const fromSetup = params.get("from") === "setup";
   const backHref = fromSetup ? "/get-started" : schedule ? "/access-policy?view=scheduled" : "/access-policy";
   const [form, setForm] = useState<Policy>(schedule ? (portal.scheduledPolicy ?? portal.policy) : portal.policy);
+  const [baseline] = useState(form);
   const [errors, setErrors] = useState<Partial<Record<keyof Policy, string>>>({});
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
+
+  function leave() {
+    if (dirty) setDiscardOpen(true);
+    else router.push(backHref);
+  }
 
   function save() {
     const next: Partial<Record<keyof Policy, string>> = {};
@@ -46,10 +55,10 @@ function ConfigurePolicy() {
 
   return (
     <div className="px-4 py-5 sm:px-6">
-      <Link href={backHref} className="inline-flex items-center gap-2 text-sm font-medium text-[#162e25]">
+      <button type="button" onClick={leave} className="inline-flex items-center gap-2 text-sm font-medium text-[#162e25]">
         <img src="/icons/int/back.svg" alt="" className="size-4" />
         {fromSetup ? "Get Started" : "Access policy"}
-      </Link>
+      </button>
       <h1 className="mt-3 text-[26px] font-semibold tracking-[-0.4px] text-[#162e25]">Configure access policy</h1>
       <p className="mt-1 text-sm text-[#4e6358]">Set eligibility and withdrawal limits for everyone in this workspace.</p>
       <div className="mt-5 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -82,7 +91,7 @@ function ConfigurePolicy() {
             </p>
           </div>
           <div className="flex justify-end gap-2">
-            <Link href={backHref} className="inline-flex h-10 items-center rounded-lg border border-[#e4e4e7] px-4 text-sm font-medium text-[#162e25]">Cancel</Link>
+            <button type="button" onClick={leave} className="inline-flex h-10 items-center rounded-lg border border-[#e4e4e7] px-4 text-sm font-medium text-[#162e25]">Cancel</button>
             <button type="button" onClick={save} className="inline-flex h-11 items-center rounded-lg bg-[#0f2a1f] px-4 text-xs font-bold text-[#fffff4]">Save policy</button>
           </div>
         </div>
@@ -100,6 +109,12 @@ function ConfigurePolicy() {
           </aside>
         </div>
       </div>
+      <Modal open={discardOpen} title="Discard your changes?" description="Your edits haven’t been saved. The current and scheduled policies will stay as they are." onClose={() => setDiscardOpen(false)}>
+        <div className="flex justify-end gap-2">
+          <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setDiscardOpen(false)}>Keep editing</button>
+          <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => router.push(backHref)}>Discard changes</button>
+        </div>
+      </Modal>
     </div>
   );
 }

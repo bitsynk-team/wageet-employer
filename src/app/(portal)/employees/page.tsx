@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { DateField } from "@/components/portal/date-field";
 import { StatusPill } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 import type { Employee } from "@/lib/types";
@@ -205,7 +206,15 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
             <div className="mt-4 space-y-5">
               {rows.map((row, index) => (
                 <div key={index}>
-                  <p className="text-sm font-semibold">Employee {index + 1}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">Employee {index + 1}</p>
+                    {index > 0 ? (
+                      <button type="button" className="inline-flex h-[26px] items-center gap-1.5 rounded-md bg-[#f8f8f8] px-2.5 text-xs font-medium text-[#fa4d01]" onClick={() => { setRows((current) => current.filter((_, rowIndex) => rowIndex !== index)); setRowError([]); }}>
+                        Remove
+                        <img src="/icons/setup/remove.svg" alt="" className="size-[18px]" />
+                      </button>
+                    ) : null}
+                  </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <label className="text-sm">
                       <span className="mb-1 block font-medium">Name *</span>
@@ -216,10 +225,10 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
                       <input className="h-11 w-full rounded-lg border border-[#dce4de] px-3 outline-none" placeholder="Enter invitation email" value={row.email} onChange={(event) => updateRow(setRows, index, { email: event.target.value })} />
                     </label>
                   </div>
-                  <label className="mt-3 block text-sm">
+                  <div className="mt-3 block text-sm">
                     <span className="mb-1 block font-medium">Employment start date *</span>
-                    <input className="h-11 w-full rounded-lg border border-[#dce4de] px-3 outline-none" placeholder="DD/MM/YYYY" value={row.start} onChange={(event) => updateRow(setRows, index, { start: event.target.value })} />
-                  </label>
+                    <DateField format="long" placeholder="DD/MM/YYYY" value={row.start} onChange={(start) => updateRow(setRows, index, { start })} />
+                  </div>
                   <button type="button" className="mt-4 flex w-full items-center justify-between text-sm font-semibold" onClick={() => updateRow(setRows, index, { open: !row.open })}>
                     Account Details <span>{row.open ? "⌃" : "⌄"}</span>
                   </button>

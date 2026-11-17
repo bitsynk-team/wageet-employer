@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { DateField } from "@/components/portal/date-field";
 import { StatusPill } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 import { naira } from "@/lib/mock-data";
@@ -210,10 +211,10 @@ function AddRecord({ onClose }: { onClose: () => void }) {
           {portal.employees.map((person) => <option key={person.id} value={person.id}>{person.name} · {person.code}</option>)}
         </select>
       </label>
-      <label className="mt-3 block text-sm">
+      <div className="mt-3 block text-sm">
         <span className="mb-1 block font-medium">Work date</span>
-        <input className="h-11 w-full rounded-lg border border-[#dce4de] px-3" placeholder="DD/MM/YYYY" value={date} onChange={(event) => setDate(event.target.value)} />
-      </label>
+        <DateField format="medium" placeholder="DD/MM/YYYY" value={date} onChange={setDate} />
+      </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
         <label className="text-sm"><span className="mb-1 block font-medium">Hours</span><input className="h-11 w-full rounded-lg border border-[#dce4de] px-3" value={hours} onChange={(event) => setHours(event.target.value)} /></label>
         <label className="text-sm"><span className="mb-1 block font-medium">Earnings</span><input className="h-11 w-full rounded-lg border border-[#dce4de] px-3" inputMode="numeric" value={amount} onChange={(event) => setAmount(event.target.value.replace(/\D/g, ""))} /></label>

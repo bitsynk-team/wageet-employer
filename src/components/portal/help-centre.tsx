@@ -123,8 +123,8 @@ export function HelpFrame({ children, hideContact = false }: { children?: React.
         )}
       </div>
       <div className="mt-5 flex gap-6 border-b border-[#ececed] text-sm">
-        <Link href="/help" className={cn("-mb-px pb-2", !onRequests ? "border-b-2 border-[#153a2b] font-medium text-[#162e25]" : "text-[#71717a]")}>Help centre</Link>
-        <Link href="/help/requests" className={cn("-mb-px pb-2", onRequests ? "border-b-2 border-[#153a2b] font-medium text-[#162e25]" : "text-[#71717a]")}>My support requests</Link>
+        <Link href="/help" className={cn("-mb-px border-b-[3px] pb-2", !onRequests ? "border-[#226b49] font-semibold text-[#142e24]" : "border-transparent font-normal text-[#52665b]")}>Help centre</Link>
+        <Link href="/help/requests" className={cn("-mb-px border-b-[3px] pb-2", onRequests ? "border-[#226b49] font-semibold text-[#142e24]" : "border-transparent font-normal text-[#52665b]")}>My support requests</Link>
       </div>
       {onRequests ? (
         <div className="pt-4">{children}</div>
@@ -143,8 +143,9 @@ export function HelpFrame({ children, hideContact = false }: { children?: React.
                         setTopic(item.title);
                         setOpenQuestion(item.questions[0][0]);
                       }}
-                      className={cn("flex w-full items-center gap-2 rounded-xl bg-white px-2 py-2 text-left text-sm text-[#162e25]", selected ? "border-l-2 border-[#153a2b] font-medium" : "")}
+                      className={cn("relative flex h-[53px] w-full items-center gap-2 rounded-[7px] bg-white px-2.5 text-left text-sm text-[#142e24]", selected && "font-medium")}
                     >
+                      {selected ? <span className="absolute top-1/2 left-0 h-[27px] w-[3px] -translate-y-1/2 rounded-sm bg-[#226b49]" /> : null}
                       <TopicMark title={item.title} />
                       {item.title}
                     </button>

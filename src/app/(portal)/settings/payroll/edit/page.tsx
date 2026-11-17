@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DateField } from "@/components/portal/date-field";
 import { usePortal } from "@/components/portal/store";
 import type { Payroll } from "@/lib/types";
 
@@ -41,10 +42,10 @@ export default function EditPayrollPage() {
             <span className="font-medium text-[#162e25]">Currency</span>
             <input readOnly value="NGN · Nigerian naira" className="mt-1.5 h-11 w-full rounded-lg border border-[#dce4de] bg-[#fafafa] px-3" />
           </label>
-          <Field label="Earning period starts *" value={form.start} onChange={(value) => setForm({ ...form, start: value })} />
-          <Field label="Earning period ends *" value={form.end} onChange={(value) => setForm({ ...form, end: value })} />
-          <Field label="Regular payday *" value={form.payday} onChange={(value) => setForm({ ...form, payday: value })} />
-          <Field label="Withdrawal cut-off *" value={form.cutoff} onChange={(value) => setForm({ ...form, cutoff: value })} />
+          <DateLabel label="Earning period starts *"><DateField className="mt-1.5" format="medium" value={form.start} onChange={(start) => setForm({ ...form, start })} /></DateLabel>
+          <DateLabel label="Earning period ends *"><DateField className="mt-1.5" format="medium" value={form.end} onChange={(end) => setForm({ ...form, end })} /></DateLabel>
+          <DateLabel label="Regular payday *"><DateField className="mt-1.5" format="dayMon" value={form.payday} onChange={(payday) => setForm({ ...form, payday })} /></DateLabel>
+          <DateLabel label="Withdrawal cut-off *"><DateField className="mt-1.5" format="cutoff" value={form.cutoff} onChange={(cutoff) => setForm({ ...form, cutoff })} /></DateLabel>
         </div>
         <p className="mt-4 text-sm text-[#4e6358]">Repeats {form.frequency.toLowerCase()}. Withdrawals close at 23:59 WAT on the cut-off date. This lets you reconcile withdrawals before running payroll.</p>
         {error ? <p className="mt-3 text-sm text-[#b42318]">{error}</p> : null}
@@ -57,11 +58,11 @@ export default function EditPayrollPage() {
   );
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function DateLabel({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block text-sm">
+    <div className="block text-sm">
       <span className="font-medium text-[#162e25]">{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-[#dce4de] px-3" />
-    </label>
+      {children}
+    </div>
   );
 }

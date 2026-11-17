@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DateField } from "@/components/portal/date-field";
 import { RequiredNote, SetupActions, SetupCard, SetupPage, SupportLine, fieldClass, labelClass } from "@/components/portal/setup-ui";
 import { usePortal } from "@/components/portal/store";
 import { cn } from "cn";
@@ -67,18 +68,26 @@ export default function AddEmployeesPage() {
           <div className="mt-6 space-y-6">
             {rows.map((row, index) => (
               <div key={index}>
-                <p className="text-sm font-semibold text-[#0f2a1f]">Employee {index + 1}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-[#0f2a1f]">Employee {index + 1}</p>
+                  {index > 0 ? (
+                    <button type="button" className="inline-flex h-[26px] items-center gap-1.5 rounded-md bg-[#f8f8f8] px-2.5 text-xs font-medium text-[#fa4d01]" onClick={() => { setRows((current) => current.filter((_, rowIndex) => rowIndex !== index)); setErrors([]); }}>
+                      Remove
+                      <img src="/icons/setup/remove.svg" alt="" className="size-[18px]" />
+                    </button>
+                  ) : null}
+                </div>
                 <div className="mt-3 grid gap-5 sm:grid-cols-2">
                   <label>
                     <span className={labelClass}>Invitation email *</span>
                     <input className={`${fieldClass} placeholder:text-[#526459]`} placeholder="Enter invitation email" value={row.email} onChange={(event) => update(index, "email", event.target.value)} />
                     <span className="mt-2 block text-xs leading-normal text-[#526459]">This is where this employee will receive their workspace invitation.</span>
                   </label>
-                  <label>
+                  <div>
                     <span className={labelClass}>Employment start date *</span>
-                    <input className={fieldClass} placeholder="DD/MM/YYYY" value={row.start} onChange={(event) => update(index, "start", event.target.value)} />
+                    <DateField className={fieldClass} format="dmy" placeholder="DD/MM/YYYY" value={row.start} onChange={(start) => update(index, "start", start)} />
                     <span className="mt-2 block text-xs leading-normal text-[#526459]">The start date is used to check the minimum employment duration in your access policy.</span>
-                  </label>
+                  </div>
                   <label>
                     <span className={labelClass}>Account Number</span>
                     <input className={fieldClass} value={row.account} onChange={(event) => update(index, "account", event.target.value)} />

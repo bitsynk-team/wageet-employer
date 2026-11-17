@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "cn";
 import { Icon } from "@/components/portal/icons";
 import { usePortal } from "@/components/portal/store";
@@ -57,15 +57,17 @@ function NavLink({
   onNavigate?: () => void;
   onToggle?: () => void;
 }) {
-  const classes = cn(
-    "flex h-8 w-full items-center gap-2 rounded-lg px-3 text-xs tracking-[-0.12px] text-[#666e6d]",
-    active && "bg-white font-medium text-[#236355] shadow-[0px_1px_1.5px_rgba(0,0,0,0.05)]",
-    collapsed && "justify-center px-0",
-  );
   return (
-    <div className={classes}>
-      <Link href={href} aria-current={active ? "page" : undefined} title={label} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-2">
-        <Icon name={icon} className="size-4" />
+    <div className={cn("flex", collapsed ? "justify-center" : "w-full")}>
+      <div
+        className={cn(
+          "flex h-8 items-center rounded-lg text-xs tracking-[-0.12px]",
+          collapsed ? "w-8 justify-center" : "w-full gap-2 px-3",
+          active ? "bg-white font-medium text-[#236355] shadow-[0px_1px_1.5px_rgba(0,0,0,0.05)]" : "text-[#666e6d]",
+        )}
+      >
+      <Link href={href} aria-current={active ? "page" : undefined} title={label} onClick={onNavigate} className={cn("flex items-center", collapsed ? "justify-center" : "min-w-0 flex-1 gap-2")}>
+        {active && icon !== "headset" ? <ActiveIcon name={icon} /> : <Icon name={icon} className="size-4" />}
         {collapsed ? <span className="sr-only">{label}</span> : <span className="truncate">{label}</span>}
       </Link>
       {caret && !collapsed ? (
@@ -73,7 +75,21 @@ function NavLink({
           <Icon name="caret" className={cn("size-3", caret === "up" && "rotate-180")} />
         </button>
       ) : null}
+      </div>
     </div>
+  );
+}
+
+function ActiveIcon({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden
+      className="inline-block size-4 shrink-0 bg-[#236355]"
+      style={{
+        WebkitMask: `url(/icons/${name}.svg) center / contain no-repeat`,
+        mask: `url(/icons/${name}.svg) center / contain no-repeat`,
+      }}
+    />
   );
 }
 
@@ -99,6 +115,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     setExpanded(sectionFor(pathname));
   }
   const [profileOpen, setProfileOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [noticesOpen, setNoticesOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
@@ -108,7 +125,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-[#f9fafa]">
-      <div className="flex h-14 items-center justify-between border-b border-[#e7e9e9] px-3">
+      <div className={cn("flex h-14 items-center border-b border-[#e7e9e9] px-3", portal.collapsed ? "justify-center" : "justify-between")}>
         <Link href="/dashboard" className={portal.collapsed ? "sr-only" : undefined} onClick={() => setMobileOpen(false)}>
           <img src="/icons/wordmark.svg" alt="Wageet" width={75} height={24} className="h-6 w-[75px]" />
         </Link>
@@ -200,12 +217,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </nav>
       </div>
       <div className="relative p-3">
-        <button type="button" className="flex w-full items-center gap-2 rounded-xl bg-white p-2 text-left shadow-[0px_4px_12px_rgba(20,32,31,0.02)]" onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen}>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-xs font-medium tracking-[-0.12px] text-[#14201f]">{portal.profile.name}</span>
-            <span className="block truncate text-[11px] text-[#666e6d]">{portal.profile.email}</span>
-          </span>
-          <Icon name="caret" className="size-3" />
+        <button type="button" className={cn("flex w-full items-center gap-2 rounded-xl bg-white text-left shadow-[0px_4px_12px_rgba(20,32,31,0.02)]", portal.collapsed ? "justify-center p-1.5" : "p-2")} onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen}>
+          {portal.collapsed ? (
+            <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#e7f3ee] text-[11px] font-medium text-[#153a2b]">{portal.profile.name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
+          ) : (
+            <>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-medium tracking-[-0.12px] text-[#14201f]">{portal.profile.name}</span>
+                <span className="block truncate text-[11px] text-[#666e6d]">{portal.profile.email}</span>
+              </span>
+              <Icon name="caret" className="size-3" />
+            </>
+          )}
         </button>
         {profileOpen ? (
           <div className="absolute right-3 bottom-16 left-3 rounded-xl border border-[#e4e4e7] bg-white p-1 shadow-lg">
@@ -216,8 +239,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
               type="button"
               className="block w-full rounded-md px-2 py-2 text-left text-sm text-[#b42318] hover:bg-[#fdf2f0]"
               onClick={() => {
-                portal.signOut();
-                router.push("/sign-in");
+                setProfileOpen(false);
+                setSignOutOpen(true);
               }}
             >
               Sign out
@@ -310,6 +333,37 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       ) : null}
+      {signOutOpen ? <SignOutDialog onClose={() => setSignOutOpen(false)} onConfirm={() => { portal.signOut(); router.push("/sign-in"); }} /> : null}
+    </div>
+  );
+}
+
+function SignOutDialog({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <button type="button" className="absolute inset-0 bg-[#0f2a1f]/40" aria-label="Close dialog" onClick={onClose} />
+      <div role="dialog" aria-modal="true" aria-labelledby="sign-out-title" className="relative z-10 w-full max-w-[466px] rounded-2xl bg-white p-6 shadow-xl">
+        <img src="/icons/logout-badge.svg" alt="" className="size-9" />
+        <h2 id="sign-out-title" className="mt-3 text-2xl font-semibold tracking-[-0.3px] text-[#142e24]">Sign out of Wageet?</h2>
+        <p className="mt-2 text-sm leading-snug text-[#52655b]">This ends your administrator session on this device. You can sign in again with your work account.</p>
+        <div className="mt-4 border-t border-[#dfe5dd] pt-4">
+          <div className="flex justify-end gap-2">
+            <button type="button" className="h-10 rounded-lg border border-[#dfe5dd] bg-white px-3 text-sm font-medium text-[#142e24]" onClick={onClose}>Stay signed in</button>
+            <button type="button" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[#a44035] px-3 text-sm font-medium text-white" onClick={onConfirm}>
+              <img src="/icons/logout.svg" alt="" className="size-[15px]" />
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

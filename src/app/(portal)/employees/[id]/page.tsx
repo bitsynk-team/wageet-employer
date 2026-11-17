@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { DateField } from "@/components/portal/date-field";
 import { StatusPill } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 import { naira } from "@/lib/mock-data";
@@ -236,11 +237,11 @@ function EmploymentEditor({ person, onClose, onEnd, onRestore }: { person: Emplo
           </ul>
         ) : null}
       </div>
-      <label className="mt-3 block text-sm">
+      <div className="mt-3 block text-sm">
         <span className="mb-1 block font-medium">Employment start date</span>
-        <input className="h-11 w-full rounded-lg border border-[#dce4de] px-3" value={start} onChange={(event) => setStart(event.target.value)} />
+        <DateField format="long" value={start} onChange={setStart} />
         <span className="mt-1 block text-xs text-[#526459]">The start date is used to check the policy’s 30-day minimum employment period.</span>
-      </label>
+      </div>
       <p className="mt-3 text-sm">Employment is <span className="font-medium">{person.status}</span>.</p>
       {person.status === "Inactive" ? (
         <button type="button" className="mt-2 text-sm font-medium text-[#17803d]" onClick={onRestore}>Restore workplace access</button>
