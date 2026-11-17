@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DateField, parsePortalDate } from "@/components/portal/date-field";
 import { Modal } from "@/components/portal/ui";
 import { RequiredNote, SetupActions, SetupCard, SetupPage, SupportLine, fieldClass, labelClass } from "@/components/portal/setup-ui";
 import { usePortal } from "@/components/portal/store";
@@ -18,6 +19,12 @@ export default function PayrollSetupPage() {
   const [exceptionOpen, setExceptionOpen] = useState(false);
   const [payday, setPayday] = useState("Day after the week ends");
   const [cutoff, setCutoff] = useState("2 days before payday");
+  const [dates, setDates] = useState({
+    start: asDmy(portal.payroll.start, "01/11/2026"),
+    end: asDmy(portal.payroll.end, "30/11/2026"),
+    payday: asDmy(portal.payroll.payday, "30/11/2026"),
+    cutoff: asDmy(portal.payroll.cutoff, "28/11/2026"),
+  });
 
   function save() {
     const cycle =
@@ -25,7 +32,7 @@ export default function PayrollSetupPage() {
         ? { start: "Monday", end: "Sunday", payday: "Day after the week ends", cutoff: "2 days before payday" }
         : frequency === "Daily"
           ? { start: "One workday", end: "One workday", payday: "Following calendar day", cutoff: "23:59 WAT" }
-          : { start: "01/11/2026", end: "30/11/2026", payday: "30/11/2026", cutoff: "28/11/2026" };
+          : dates;
     portal.savePayroll({ frequency, ...cycle });
     router.push("/get-started");
   }
@@ -63,7 +70,7 @@ export default function PayrollSetupPage() {
             </div>
             <Field label="Currency" value="NGN · Nigerian naira" readOnly muted />
           </div>
-          {frequency === "Monthly" ? <MonthlyFields /> : null}
+          {frequency === "Monthly" ? <MonthlyFields dates={dates} onChange={(patch) => setDates((current) => ({ ...current, ...patch }))} /> : null}
           {frequency === "Weekly" ? <WeeklyFields onException={() => setExceptionOpen(true)} /> : null}
           {frequency === "Daily" ? <DailyFields onException={() => setExceptionOpen(true)} /> : null}
           {frequency === "Monthly" ? (
@@ -127,17 +134,23 @@ export default function PayrollSetupPage() {
   );
 }
 
-function MonthlyFields() {
+function asDmy(value: string, fallback: string) {
+  const date = parsePortalDate(value);
+  if (!date) return fallback;
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+}
+
+function MonthlyFields({ dates, onChange }: { dates: { start: string; end: string; payday: string; cutoff: string }; onChange: (patch: Partial<{ start: string; end: string; payday: string; cutoff: string }>) => void }) {
   return (
     <>
       <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="Earning period starts *" value="01/11/2026" muted />
-        <Field label="Earning period ends *" value="30/11/2026" muted />
+        <DateSlot label="Earning period starts *"><DateField className={fieldClass} format="dmy" value={dates.start} onChange={(start) => onChange({ start })} /></DateSlot>
+        <DateSlot label="Earning period ends *"><DateField className={fieldClass} format="dmy" value={dates.end} onChange={(end) => onChange({ end })} /></DateSlot>
       </div>
       <div className="flex flex-col gap-2.5">
         <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Regular payday *" value="30/11/2026" muted />
-          <Field label="Withdrawal cut-off *" value="28/11/2026" muted capitalize />
+          <DateSlot label="Regular payday *"><DateField className={fieldClass} format="dmy" value={dates.payday} onChange={(payday) => onChange({ payday })} /></DateSlot>
+          <DateSlot label="Withdrawal cut-off *" capitalize><DateField className={fieldClass} format="dmy" value={dates.cutoff} onChange={(cutoff) => onChange({ cutoff })} /></DateSlot>
         </div>
         <p className="flex items-center gap-[7px] text-sm font-medium text-[#0f2a1f]">
           <img src="/icons/setup/sync.svg" alt="" className="size-[15px]" />
@@ -205,6 +218,15 @@ function DailyFields({ onException }: { onException: () => void }) {
         ]}
       />
     </>
+  );
+}
+
+function DateSlot({ label, children, capitalize = false }: { label: string; children: React.ReactNode; capitalize?: boolean }) {
+  return (
+    <div>
+      <span className={cn(labelClass, capitalize && "capitalize")}>{label}</span>
+      {children}
+    </div>
   );
 }
 

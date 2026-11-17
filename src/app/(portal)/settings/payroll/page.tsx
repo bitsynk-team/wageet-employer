@@ -2,9 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { DateField, parsePortalDate } from "@/components/portal/date-field";
 import { Modal } from "@/components/portal/ui";
 import { SettingsFrame } from "@/components/portal/settings-nav";
 import { usePortal } from "@/components/portal/store";
+
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function withYear(value: string) {
+  return /\d{4}/.test(value) ? value : `${value} 2026`;
+}
+
+function cycleTitle(end: string) {
+  const date = parsePortalDate(end);
+  if (!date) return end;
+  return `${months[date.getMonth()]} ${date.getFullYear()}`;
+}
 
 export default function PayrollSettingsPage() {
   const portal = usePortal();
@@ -28,16 +41,18 @@ export default function PayrollSettingsPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs text-[#71717a]">Current payroll cycle</p>
-            <h2 className="text-lg font-semibold text-[#162e25]">November 2026</h2>
-            <p className="text-sm text-[#4e6358]">Monthly · 1–30 November · Africa/Lagos</p>
+            <h2 className="text-lg font-semibold text-[#162e25]">{cycleTitle(portal.payroll.end)}</h2>
+            <p className="text-sm text-[#4e6358]">{portal.payroll.frequency} · {portal.payroll.start} – {portal.payroll.end} · Africa/Lagos</p>
           </div>
           <Link href="/settings/payroll/edit" className="inline-flex h-10 items-center rounded-lg border border-[#e4e4e7] px-3 text-sm">Edit schedule</Link>
         </div>
         <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl bg-[#f8f8f8] px-4 py-3"><dt className="text-xs text-[#71717a]">Earning period starts</dt><dd className="font-medium text-[#162e25]">{portal.payroll.start}</dd></div>
+          <div className="rounded-xl bg-[#f8f8f8] px-4 py-3"><dt className="text-xs text-[#71717a]">Earning period ends</dt><dd className="font-medium text-[#162e25]">{portal.payroll.end}</dd></div>
           <div className="rounded-xl bg-[#f8f8f8] px-4 py-3"><dt className="text-xs text-[#71717a]">Withdrawal cut-off</dt><dd className="font-medium text-[#162e25]">{portal.payroll.cutoff}</dd></div>
-          <div className="rounded-xl bg-[#f8f8f8] px-4 py-3"><dt className="text-xs text-[#71717a]">Payday</dt><dd className="font-medium text-[#162e25]">{portal.payroll.payday} 2026</dd></div>
+          <div className="rounded-xl bg-[#f8f8f8] px-4 py-3"><dt className="text-xs text-[#71717a]">Payday</dt><dd className="font-medium text-[#162e25]">{withYear(portal.payroll.payday)}</dd></div>
         </dl>
-        <p className="mt-3 text-sm text-[#4e6358]">Payday is the last day of the month. Withdrawals close 2 days earlier.</p>
+        <p className="mt-3 text-sm text-[#4e6358]">Payday is {withYear(portal.payroll.payday)}. Withdrawals close on {portal.payroll.cutoff}.</p>
       </section>
       <section className="mt-4 rounded-2xl border border-[#e4e4e7] p-4">
         <div className="flex items-start justify-between gap-3">
@@ -60,12 +75,18 @@ export default function PayrollSettingsPage() {
       </section>
       <Modal open={open} title="Add a monthly exception" description="Change dates for one earning period. Other months follow the regular schedule." onClose={() => setOpen(false)}>
         <div className="space-y-3">
-          {([["month", "Month"], ["payday", "Payday"], ["cutoff", "Withdrawal cut-off"]] as const).map(([key, label]) => (
-            <label key={key} className="block text-sm">
-              <span className="font-medium text-[#162e25]">{label}</span>
-              <input value={draft[key]} onChange={(event) => setDraft({ ...draft, [key]: event.target.value })} className="mt-1.5 h-11 w-full rounded-lg border border-[#dce4de] px-3" />
-            </label>
-          ))}
+          <div className="block text-sm">
+            <span className="font-medium text-[#162e25]">Month</span>
+            <DateField className="mt-1.5" format="month" value={draft.month} onChange={(month) => setDraft({ ...draft, month })} />
+          </div>
+          <div className="block text-sm">
+            <span className="font-medium text-[#162e25]">Payday</span>
+            <DateField className="mt-1.5" format="medium" value={draft.payday} onChange={(payday) => setDraft({ ...draft, payday })} />
+          </div>
+          <div className="block text-sm">
+            <span className="font-medium text-[#162e25]">Withdrawal cut-off</span>
+            <DateField className="mt-1.5" format="cutoff" value={draft.cutoff} onChange={(cutoff) => setDraft({ ...draft, cutoff })} />
+          </div>
           <div className="flex justify-end gap-2">
             <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setOpen(false)}>Cancel</button>
             <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { setExceptions((current) => [draft, ...current.filter((item) => item.month !== draft.month)]); portal.notify("Exception saved."); setOpen(false); }}>Save exception</button>
