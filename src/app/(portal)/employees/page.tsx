@@ -32,7 +32,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All status");
   const [sort, setSort] = useState("Default order");
-  const [pageSize, setPageSize] = useState("15");
+  const [pageSize, setPageSize] = useState("10");
   const [page, setPage] = useState(1);
   const [statusOpen, setStatusOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -45,7 +45,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
 
   const filtered = useMemo(() => {
     const list = portal.employees.filter((person) => {
-      const haystack = `${person.name} ${person.email} ${person.role}`.toLowerCase();
+      const haystack = `${person.name} ${person.email} ${person.role} ${person.code} ${person.department}`.toLowerCase();
       if (query && !haystack.includes(query.toLowerCase())) return false;
       if (tab === "all" && status !== "All status" && person.status !== status) return false;
       if (tab === "invited" && status !== "All status" && person.delivery !== status) return false;
@@ -62,13 +62,13 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
   const visible = filtered.slice((page - 1) * size, page * size);
   const statusOptions = tab === "all" ? ["All status", "Active", "Inactive"] : ["All status", "Pending", "Delivery failed"];
 
-  function exportFile(kind: "pdf" | "csv") {
+  function exportFile(kind: "csv" | "excel") {
     const headers = tab === "all"
-      ? ["Name", "Email", "Role", "Joined Date", "Account Details", "Status"]
+      ? ["Employee", "Email", "Employee ID", "Employment", "Joined", "Bank details", "Access"]
       : ["Name", "Email", "Role", "Invited Date", "Invited By", "Status"];
     const lines = filtered.map((person) =>
       tab === "all"
-        ? [person.name, person.email, person.role, person.joined, person.account, person.status]
+        ? [person.name, person.email, person.code, person.department, person.joined, person.account, person.status]
         : [person.name, person.email, person.role, person.joined, person.invitedBy, person.delivery],
     );
     const title = tab === "all" ? "employees" : "invitations";
@@ -76,9 +76,10 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
       const csv = [headers, ...lines].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
       download(`${title}.csv`, csv, "text/csv");
     } else {
-      downloadPdf(`${title}.pdf`, [title === "employees" ? "Employees" : "Invitations", ...lines.map((row) => row.join(" · "))]);
+      const table = `<table><tr>${headers.map((cell) => `<th>${cell}</th>`).join("")}</tr>${lines.map((line) => `<tr>${line.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</table>`;
+      download(`${title}.xls`, table, "application/vnd.ms-excel");
     }
-    portal.notify(`${kind === "pdf" ? "PDF" : "CSV"} export downloaded.`);
+    portal.notify(kind === "csv" ? "CSV export downloaded." : "Excel export downloaded.");
     setExportOpen(false);
   }
 
@@ -122,9 +123,9 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
               ↓ Export
             </button>
             {exportOpen ? (
-              <ul className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-[#e7e9e9] bg-white p-1 text-sm shadow-lg">
-                <li><button type="button" className="w-full rounded px-3 py-2 text-left hover:bg-[#f6f7f4]" onClick={() => exportFile("pdf")}>{tab === "all" ? "Employees PDF" : "Invitations PDF"}</button></li>
-                <li><button type="button" className="w-full rounded px-3 py-2 text-left hover:bg-[#f6f7f4]" onClick={() => exportFile("csv")}>{tab === "all" ? "Employees CSV" : "Invitations CSV"}</button></li>
+              <ul className="absolute right-0 z-20 mt-1 w-[280px] rounded-lg border border-[#e7e9e9] bg-white p-2.5 text-sm shadow-lg">
+                <li><button type="button" className="h-10 w-full rounded-lg px-3 text-left text-[#162e25] hover:bg-[#f6f7f4]" onClick={() => exportFile("csv")}>Download CSV</button></li>
+                <li><button type="button" className="h-10 w-full rounded-lg px-3 text-left text-[#162e25] hover:bg-[#f6f7f4]" onClick={() => exportFile("excel")}>Download Excel</button></li>
               </ul>
             ) : null}
           </div>
@@ -152,28 +153,53 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
-              {(tab === "all" ? ["Name", "Email", "Role", "Joined Date", "Account Details", "Status", ""] : ["Name", "Email", "Role", "Invited Date", "Invited By", "Status", ""]).map((heading) => (
+              {(tab === "all" ? ["Employee", "Employee ID", "Employment", "Bank details", "Access", ""] : ["Name", "Role", "Invited date", "Invited by", "Status", ""]).map((heading) => (
                 <th key={heading || "menu"} className="px-4 py-2 font-medium first:rounded-l-lg last:rounded-r-lg">{heading}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {visible.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-[#526459]">No {tab === "all" ? "employees" : "invitations"} match.</td></tr>
-            ) : visible.map((person) => (
-              <tr key={person.id} className="border-b border-[#f3f3f1]">
-                <td className="px-4 py-3.5 font-medium text-[#162e25]">
-                  <Link href={tab === "invited" ? `/employees/${person.id}?view=invitation` : `/employees/${person.id}`}>{person.name}</Link>
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center">
+                  {portal.employees.length === 0 && !query ? (
+                    <>
+                      <p className="text-sm font-semibold text-[#162e25]">{tab === "all" ? "No employees yet" : "No invitations yet"}</p>
+                      <p className="mt-1 text-sm text-[#526459]">Invite your first employee to start setting up earned wage access.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-[#162e25]">No matching {tab === "all" ? "employees" : "invitations"}</p>
+                      <p className="mt-1 text-sm text-[#526459]">Try a different name or clear your filters.</p>
+                      <button type="button" className="mt-3 inline-flex h-9 items-center rounded-lg border border-[#dce4de] px-3 text-sm font-medium text-[#162e25]" onClick={() => { setQuery(""); setStatus("All status"); setSort("Default order"); setPage(1); }}>Clear filters</button>
+                    </>
+                  )}
                 </td>
-                <td className="px-4 py-3.5 text-[#3f3f46]">{person.email}</td>
-                <td className="px-4 py-3.5">{person.role}</td>
-                <td className="px-4 py-3.5">{person.joined}</td>
+              </tr>
+            ) : visible.map((person) => (
+              <tr key={person.id} className="border-b border-[#f3f3f1] hover:bg-[#f8f8f8]">
+                <td className="px-4 py-3.5">
+                  <Link href={tab === "invited" ? `/employees/${person.id}?view=invitation` : `/employees/${person.id}`} className="block font-medium text-[#162e25]">{person.name}</Link>
+                  <span className="block text-xs text-[#71717a]">{person.email}</span>
+                </td>
                 {tab === "all" ? (
-                  <td className={cn("px-4 py-3.5", person.account === "Missing" ? "font-medium text-[#b58105]" : "text-[#3f3f46]")}>{person.account}</td>
+                  <>
+                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.code}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="block text-[#162e25]">{person.department}</span>
+                      <span className="block text-xs text-[#71717a]">Joined {person.joined}</span>
+                    </td>
+                    <td className="px-4 py-3.5"><StatusPill value={person.account} /></td>
+                    <td className="px-4 py-3.5"><StatusPill value={person.status} /></td>
+                  </>
                 ) : (
-                  <td className="px-4 py-3.5">{person.invitedBy}</td>
+                  <>
+                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.role}</td>
+                    <td className="px-4 py-3.5">{person.joined}</td>
+                    <td className="px-4 py-3.5">{person.invitedBy}</td>
+                    <td className="px-4 py-3.5"><StatusPill value={person.delivery} /></td>
+                  </>
                 )}
-                <td className="px-4 py-3.5"><StatusPill value={tab === "all" ? person.status : person.delivery} /></td>
                 <td className="relative px-4 py-3.5 text-right">
                   <button type="button" aria-label={`Actions for ${person.name}`} className="text-[#71717a]" onClick={() => setMenuId(menuId === person.id ? null : person.id)}>···</button>
                   {menuId === person.id ? <RowMenu person={person} invited={tab === "invited"} onClose={() => setMenuId(null)} /> : null}
@@ -186,13 +212,15 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#ececed] pt-3 text-xs text-[#71717a]">
         <div className="flex items-center gap-3">
-          <Filter label="Show" open={sizeOpen} onToggle={() => setSizeOpen((open) => !open)} options={["15", "25", "50"]} value={pageSize} onChange={(value) => { setPageSize(value); setPage(1); setSizeOpen(false); }} />
-          <p>{filtered.length} {tab === "all" ? "employees" : "invitations"}</p>
+          <Filter label="Show" open={sizeOpen} onToggle={() => setSizeOpen((open) => !open)} options={["10", "25", "50"]} value={pageSize} onChange={(value) => { setPageSize(value); setPage(1); setSizeOpen(false); }} />
+          <p>Showing {filtered.length === 0 ? 0 : (page - 1) * size + 1}–{Math.min(page * size, filtered.length)} of {filtered.length}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span>Page {Math.min(page, pages)} of {pages}</span>
-          <button type="button" className="disabled:opacity-40" disabled={page <= 1} onClick={() => setPage((current) => current - 1)} aria-label="Previous page">‹</button>
-          <button type="button" className="disabled:opacity-40" disabled={page >= pages} onClick={() => setPage((current) => current + 1)} aria-label="Next page">›</button>
+        <div className="flex items-center gap-1">
+          <button type="button" className="h-8 rounded-lg px-2 disabled:opacity-40" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>Previous</button>
+          {Array.from({ length: pages }, (_, index) => index + 1).map((number) => (
+            <button key={number} type="button" className={cn("inline-flex size-8 items-center justify-center rounded-lg", number === page ? "bg-[#153a2b] font-medium text-white" : "text-[#162e25]")} onClick={() => setPage(number)} aria-current={number === page ? "page" : undefined}>{number}</button>
+          ))}
+          <button type="button" className="h-8 rounded-lg px-2 disabled:opacity-40" disabled={page >= pages} onClick={() => setPage((current) => current + 1)}>Next</button>
         </div>
       </div>
 
@@ -308,29 +336,3 @@ function download(filename: string, body: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function downloadPdf(filename: string, lines: string[]) {
-  const commands = lines.slice(0, 40).map((line, index) => {
-    const safe = line.replace(/[()\\]/g, "");
-    return `BT /F1 11 Tf 48 ${760 - index * 16} Td (${safe}) Tj ET`;
-  }).join("\n");
-  const objects = [
-    "1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj\n",
-    "2 0 obj<< /Type /Pages /Count 1 /Kids [3 0 R] >>endobj\n",
-    "3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources<< /Font<< /F1 5 0 R >> >> >>endobj\n",
-    `4 0 obj<< /Length ${commands.length} >>stream\n${commands}\nendstream endobj\n`,
-    "5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj\n",
-  ];
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-  for (const object of objects) {
-    offsets.push(pdf.length);
-    pdf += object;
-  }
-  const xref = pdf.length;
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  offsets.slice(1).forEach((offset) => {
-    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
-  });
-  pdf += `trailer<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  download(filename, pdf, "application/pdf");
-}
