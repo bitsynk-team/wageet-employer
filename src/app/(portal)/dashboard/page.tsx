@@ -6,16 +6,27 @@ import { naira } from "@/lib/mock-data";
 import { StatusPill } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 import type { TxKind } from "@/lib/types";
+import { cn } from "cn";
 
 function DashIcon({ name, className = "size-4" }: { name: string; className?: string }) {
   return <img src={`/icons/dash/${name}.svg`} alt="" className={`${className} max-w-none shrink-0`} />;
 }
 
 const withdrawalDays = [
-  { label: "3 Nov", paid: 44, other: 0 },
-  { label: "4 Nov", paid: 0, other: 29 },
-  { label: "5 Nov", paid: 0, other: 22 },
-  { label: "6 Nov", paid: 56, other: 36 },
+  { label: "3 Nov", date: "3 Nov 2026", paid: 44, other: 0, rows: [{ label: "Paid", amount: "₦10,000", dot: "#0f2a1f" }] },
+  { label: "4 Nov", date: "4 Nov 2026", paid: 0, other: 29, rows: [{ label: "Failed", amount: "₦6,500", dot: "#b42318" }] },
+  { label: "5 Nov", date: "5 Nov 2026", paid: 0, other: 22, rows: [{ label: "Processing", amount: "₦5,000", dot: "#80570c" }] },
+  {
+    label: "6 Nov",
+    date: "6 Nov 2026",
+    paid: 56,
+    other: 36,
+    rows: [
+      { label: "Paid", amount: "₦12,500", dot: "#0f2a1f" },
+      { label: "Processing", amount: "₦5,000", dot: "#80570c" },
+      { label: "Failed", amount: "₦3,000", dot: "#b42318" },
+    ],
+  },
 ];
 const months = ["November 2026", "September 2026"];
 
@@ -25,6 +36,7 @@ export default function DashboardPage() {
   const [month, setMonth] = useState(months[0]);
   const [monthOpen, setMonthOpen] = useState(false);
   const [cycleOpen, setCycleOpen] = useState(false);
+  const [chartDay, setChartDay] = useState<string | null>(null);
   const november = useMemo(() => portal.transactions.filter((item) => item.cycle !== "October 2026"), [portal.transactions]);
   const rows = useMemo(
     () => (month === "September 2026" ? [] : november.filter((item) => filter === "All" || item.kind === filter)),
@@ -245,7 +257,7 @@ export default function DashboardPage() {
         </section>
 
         <div className="flex flex-col gap-4">
-          <section className="flex flex-col gap-1 rounded-[18px] border border-[#dfe5df] bg-white p-[14px]">
+          <section className="relative flex flex-col gap-1 rounded-[18px] border border-[#dfe5df] bg-white p-[14px]">
             <div className="flex h-[29px] items-center justify-between gap-3">
               <h2 className="text-[18px] leading-[23px] font-semibold text-[#162e25]">Withdrawal requests</h2>
               {month === "September 2026" ? null : <p className="shrink-0 text-[12px] leading-[15px] font-medium whitespace-nowrap text-[#4e6358]">3–6 Nov</p>}
@@ -265,6 +277,25 @@ export default function DashboardPage() {
                   <span className="inline-flex items-center gap-[5px]"><span className="size-[9px] rounded-[3px] bg-[#153a2b]" />Paid</span>
                   <span className="inline-flex items-center gap-[5px]"><span className="size-[9px] rounded-[3px] bg-[#f18b64]" />Other requests</span>
                 </div>
+                {(() => {
+                  const day = withdrawalDays.find((item) => item.label === chartDay);
+                  if (!day) return null;
+                  const place = day.label === "3 Nov" ? "left-3" : day.label === "6 Nov" ? "right-3" : "left-1/2 -translate-x-1/2";
+                  return (
+                    <span role="tooltip" className={cn("absolute top-3 z-20 w-[208px] rounded-xl bg-white p-3 text-left shadow-[0_8px_24px_rgba(15,42,31,0.12)]", place)}>
+                      <span className="block text-sm font-semibold text-[#162e25]">{day.date}</span>
+                      <span className="mt-2 flex flex-col gap-1.5">
+                        {day.rows.map((row) => (
+                          <span key={row.label} className="flex items-center gap-2 text-xs leading-[18px]">
+                            <span className="size-2 rounded-full" style={{ backgroundColor: row.dot }} />
+                            <span className="flex-1 text-[#4e6358]">{row.label}</span>
+                            <span className="font-medium text-[#162e25]">{row.amount}</span>
+                          </span>
+                        ))}
+                      </span>
+                    </span>
+                  );
+                })()}
                 <div className="relative h-[143px] w-full rounded-[10px] bg-[#f4f5ef]">
                   <span className="absolute top-[15px] left-[5px] text-[9px] leading-3 text-[#607065]">₦20k</span>
                   <span className="absolute top-[59px] left-[5px] text-[9px] leading-3 text-[#607065]">₦10k</span>
@@ -274,14 +305,25 @@ export default function DashboardPage() {
                   <span className="absolute top-[110px] right-3 left-[37px] h-px bg-[#d9ded4]" />
                   <div className="absolute top-[21px] right-2 left-[37px] grid h-[89px] grid-cols-4">
                     {withdrawalDays.map((day) => (
-                      <div key={day.label} className="flex h-full flex-col items-center justify-end">
+                      <button
+                        key={day.label}
+                        type="button"
+                        className="relative flex h-full flex-col items-center justify-end"
+                        aria-expanded={chartDay === day.label}
+                        aria-label={`${day.date} withdrawal breakdown`}
+                        onMouseEnter={() => setChartDay(day.label)}
+                        onMouseLeave={() => setChartDay((current) => (current === day.label ? null : current))}
+                        onFocus={() => setChartDay(day.label)}
+                        onBlur={() => setChartDay((current) => (current === day.label ? null : current))}
+                        onClick={() => setChartDay(day.label)}
+                      >
                         {day.other ? (
-                          <div className="relative w-7 overflow-hidden rounded-[3px] bg-[#f18b64]" style={{ height: day.other }}>
+                          <span className="relative w-7 overflow-hidden rounded-[3px] bg-[#f18b64]" style={{ height: day.other }}>
                             <img src="/icons/dash/hatch.svg" alt="" className="absolute inset-0 h-full w-full max-w-none" />
-                          </div>
+                          </span>
                         ) : null}
-                        {day.paid ? <div className="w-7 rounded-[3px] bg-[#153a2b]" style={{ height: day.paid }} /> : null}
-                      </div>
+                        {day.paid ? <span className="w-7 rounded-[3px] bg-[#153a2b]" style={{ height: day.paid }} /> : null}
+                      </button>
                     ))}
                   </div>
                   <div className="absolute top-[117px] right-2 left-[37px] grid grid-cols-4">
