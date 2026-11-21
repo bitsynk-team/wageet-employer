@@ -120,7 +120,7 @@ function PolicyView() {
           Withdrawals pause at 23:59 WAT on the last withdrawal date set in Payroll Cycle. Daily limits reset at midnight in Africa/Lagos.
         </p>
       </div>
-      <Modal open={cancelOpen} title="Cancel this schedule?" description="The current policy stays in place. Employees keep the active withdrawal rules." onClose={() => setCancelOpen(false)}>
+      <Modal open={cancelOpen} title="Cancel the scheduled policy?" description="The policy scheduled for 1 December will be removed. Employees will have no access policy until you schedule one." onClose={() => setCancelOpen(false)}>
         <div className="flex justify-end gap-2">
           <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setCancelOpen(false)}>Keep schedule</button>
           <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { portal.cancelSchedule(); setCancelOpen(false); }}>Cancel schedule</button>

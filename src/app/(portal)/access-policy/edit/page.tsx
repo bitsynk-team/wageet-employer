@@ -7,7 +7,6 @@ import { Icon } from "@/components/portal/icons";
 import { Modal } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 import type { Policy } from "@/lib/types";
-import { naira } from "@/lib/mock-data";
 
 export default function EditPolicyPage() {
   return (
@@ -27,6 +26,7 @@ function ConfigurePolicy() {
   const [form, setForm] = useState<Policy>(schedule ? (portal.scheduledPolicy ?? portal.policy) : portal.policy);
   const [baseline] = useState(form);
   const [errors, setErrors] = useState<Partial<Record<keyof Policy, string>>>({});
+  const [retry, setRetry] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
 
@@ -42,12 +42,16 @@ function ConfigurePolicy() {
     if (form.perDay > form.perCycle) next.perDay = "The daily limit cannot exceed the pay-cycle limit.";
     if (form.minimum < 1000) next.minimum = "The minimum withdrawal is ₦1,000.";
     if (form.tenureDays < 0) next.tenureDays = "Employment duration cannot be negative.";
-    if (form.maxRequests < 1) next.maxRequests = "Allow at least one request per cycle.";
+    if (form.maxRequests < 1) next.maxRequests = "Enter at least one withdrawal.";
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      setRetry(true);
+      return;
+    }
     const message = fromSetup ? portal.savePolicy(form) : portal.saveScheduledPolicy(form);
     if (message) {
       setErrors({ percentage: message });
+      setRetry(true);
       return;
     }
     router.push(backHref);
@@ -67,19 +71,19 @@ function ConfigurePolicy() {
             <h2 className="font-semibold text-[#162e25]">Earnings access</h2>
             <p className="mt-1 text-sm text-[#4e6358]">Apply the percentage to confirmed earnings in the current payroll cycle.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <PolicyField label="Employer access percentage" value={`${form.percentage}%`} error={errors.percentage} onChange={(value) => setForm({ ...form, percentage: Number(value.replace(/\D/g, "")) || 0 })} />
-              <PolicyField label="Minimum employment duration" hint="Count from the start date. Enter 0 for no minimum." value={`${form.tenureDays} days`} error={errors.tenureDays} onChange={(value) => setForm({ ...form, tenureDays: Number(value.replace(/\D/g, "")) || 0 })} />
+              <PolicyField label="Employer access percentage" amount={form.percentage} suffix="%" hint="Enter 1–70%. Wageet sets the maximum." error={errors.percentage} onChange={(percentage) => setForm({ ...form, percentage })} />
+              <PolicyField label="Minimum employment duration" amount={form.tenureDays} suffix="days" hint="Count from the start date. Enter 0 for no minimum." error={errors.tenureDays} onChange={(tenureDays) => setForm({ ...form, tenureDays })} />
             </div>
           </section>
           <section className="rounded-2xl border border-[#e4e4e7] p-4 sm:p-5">
             <h2 className="font-semibold text-[#162e25]">Withdrawal limits</h2>
             <p className="mt-1 text-sm text-[#4e6358]">Set the limits for each employee. The lowest remaining limit applies.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <PolicyField label="Per transaction" value={naira(form.perTransaction)} error={errors.perTransaction} onChange={(value) => setForm({ ...form, perTransaction: Number(value.replace(/\D/g, "")) || 0 })} />
-              <PolicyField label="Per day" value={naira(form.perDay)} error={errors.perDay} onChange={(value) => setForm({ ...form, perDay: Number(value.replace(/\D/g, "")) || 0 })} />
-              <PolicyField label="Per payroll cycle" value={naira(form.perCycle)} error={errors.perCycle} onChange={(value) => setForm({ ...form, perCycle: Number(value.replace(/\D/g, "")) || 0 })} />
-              <PolicyField label="Minimum withdrawal" value={naira(form.minimum)} error={errors.minimum} onChange={(value) => setForm({ ...form, minimum: Number(value.replace(/\D/g, "")) || 0 })} />
-              <PolicyField label="Maximum withdrawals per cycle" value={`${form.maxRequests} requests`} error={errors.maxRequests} onChange={(value) => setForm({ ...form, maxRequests: Number(value.replace(/\D/g, "")) || 0 })} />
+              <PolicyField label="Per transaction" amount={form.perTransaction} prefix="₦" hint="Enter an amount up to the daily limit." error={errors.perTransaction} onChange={(perTransaction) => setForm({ ...form, perTransaction })} />
+              <PolicyField label="Per day" amount={form.perDay} prefix="₦" hint="Enter an amount up to the payroll-cycle limit." error={errors.perDay} onChange={(perDay) => setForm({ ...form, perDay })} />
+              <PolicyField label="Per payroll cycle" amount={form.perCycle} prefix="₦" hint="Enter an amount greater than zero." error={errors.perCycle} onChange={(perCycle) => setForm({ ...form, perCycle })} />
+              <PolicyField label="Minimum withdrawal" amount={form.minimum} prefix="₦" hint="Enter an amount up to the per-transaction limit." error={errors.minimum} onChange={(minimum) => setForm({ ...form, minimum })} />
+              <PolicyField label="Maximum withdrawals per cycle" amount={form.maxRequests} suffix="requests" hint="Enter at least one withdrawal." error={errors.maxRequests} onChange={(maxRequests) => setForm({ ...form, maxRequests })} />
             </div>
           </section>
           <div className="flex gap-3 rounded-xl bg-[#f4f5ef] px-4 py-3 text-sm text-[#4e6358]">
@@ -90,9 +94,15 @@ function ConfigurePolicy() {
               Applies next payroll cycle. Employees can withdraw once their earnings, bank details and funding are ready.
             </p>
           </div>
+          {retry ? (
+            <div className="rounded-xl border border-[#f3c7c7] bg-[#fdecec] px-4 py-3 text-sm text-[#b42318]">
+              <p className="font-medium">We couldn’t save your policy.</p>
+              <p>Your entries are still here. Edit a field or retry the save.</p>
+            </div>
+          ) : null}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={leave} className="inline-flex h-10 items-center rounded-lg border border-[#e4e4e7] px-4 text-sm font-medium text-[#162e25]">Cancel</button>
-            <button type="button" onClick={save} className="inline-flex h-11 items-center rounded-lg bg-[#0f2a1f] px-4 text-xs font-bold text-[#fffff4]">Save policy</button>
+            <button type="button" onClick={save} className="inline-flex h-11 items-center rounded-lg bg-[#0f2a1f] px-4 text-xs font-bold text-[#fffff4]">{retry ? "Retry save" : "Save policy"}</button>
           </div>
         </div>
         <div className="space-y-4">
@@ -121,21 +131,40 @@ function ConfigurePolicy() {
 
 function PolicyField({
   label,
-  value,
+  amount,
+  prefix,
+  suffix,
   hint,
   error,
   onChange,
 }: {
   label: string;
-  value: string;
+  amount: number;
+  prefix?: string;
+  suffix?: string;
   hint?: string;
   error?: string;
-  onChange: (value: string) => void;
+  onChange: (value: number) => void;
 }) {
+  const [text, setText] = useState(String(amount));
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-[#162e25]">{label}</span>
-      <input className="h-12 w-full rounded-lg border border-[#dce4de] bg-white px-4 text-sm text-[#0f2a1f] outline-none focus:border-[#0f2a1f]" value={value} onChange={(event) => onChange(event.target.value)} />
+      <span className={`flex h-12 w-full min-w-0 items-center gap-2 rounded-lg border bg-white px-4 ${error ? "border-[#b42318]" : "border-[#dce4de] focus-within:border-[#0f2a1f]"}`}>
+        {prefix ? <span className="text-sm text-[#0f2a1f]">{prefix}</span> : null}
+        <input
+          inputMode="numeric"
+          aria-label={label}
+          className="h-full min-w-[4.5rem] flex-1 bg-transparent text-sm text-[#0f2a1f] outline-none"
+          value={text}
+          onChange={(event) => {
+            const next = event.target.value.replace(/\D/g, "");
+            setText(next);
+            onChange(next === "" ? 0 : Number(next));
+          }}
+        />
+        {suffix ? <span className="pointer-events-none shrink-0 text-sm text-[#526459]">{suffix}</span> : null}
+      </span>
       {hint ? <span className="mt-1 block text-xs text-[#71717a]">{hint}</span> : null}
       {error ? <span className="mt-1 block text-xs text-[#b42318]">{error}</span> : null}
     </label>

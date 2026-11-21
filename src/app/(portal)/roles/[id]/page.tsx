@@ -16,6 +16,7 @@ export default function RoleDetailPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [manageId, setManageId] = useState<string | null>(null);
+  const [removeId, setRemoveId] = useState<string | null>(null);
   const [nextRole, setNextRole] = useState("");
   if (!role) {
     return <div className="px-4 py-6 text-sm text-[#4e6358]">That role is not in this workspace. <Link className="font-medium text-[#162e25]" href="/roles">All roles</Link></div>;
@@ -23,6 +24,7 @@ export default function RoleDetailPage() {
   const members = portal.team.filter((person) => person.roleId === role.id);
   const activeCount = members.filter((person) => person.status === "Active").length;
   const member = members.find((person) => person.id === manageId);
+  const removing = portal.team.find((person) => person.id === removeId);
   const customRoles = portal.roles.filter((item) => item.kind === "Custom role");
 
   return (
@@ -112,20 +114,31 @@ export default function RoleDetailPage() {
           <div className="flex flex-wrap justify-end gap-2"><button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setInviteOpen(false)}>Cancel</button><button type="submit" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white">Send invitation</button></div>
         </form>
       </Modal>
-      <Modal open={Boolean(member)} title={member?.status === "Invited" ? "Manage invitation" : "Remove access"} description={member?.status === "Active" ? "This administrator will lose access to the employer portal if you remove them." : member?.email} onClose={() => setManageId(null)}>
+      <Modal open={Boolean(member)} title="Manage member" description="Update this administrator’s role or remove their portal access." onClose={() => setManageId(null)}>
         {member ? (
           <div className="space-y-3">
-            <p className="text-sm font-medium text-[#162e25]">{member.name}</p>
+            <p className="text-sm text-[#4e6358]">{member.name} · {member.email}</p>
             <Field label="Role">
               <select className={inputClass} value={nextRole} onChange={(event) => setNextRole(event.target.value)}>
                 {customRoles.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
               </select>
             </Field>
             <div className="flex flex-wrap justify-end gap-2">
-              {member.status === "Invited" ? <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => { portal.resendInvite(member.id); setManageId(null); }}>Resend</button> : null}
-              <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setManageId(null)}>{member.status === "Active" ? "Keep access" : "Cancel"}</button>
-              <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { portal.removeMember(member.id); setManageId(null); }}>{member.status === "Invited" ? "Cancel invitation" : "Remove access"}</button>
-              <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => { portal.updateMember(member.id, nextRole); setManageId(null); }}>Save role</button>
+              <button type="button" className="h-10 rounded-lg border border-[#f3c7c7] px-3 text-sm text-[#b42318]" onClick={() => setRemoveId(member.id)}>Remove access</button>
+              {member.status === "Invited" ? <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => { portal.resendInvite(member.id); setManageId(null); }}>Resend invite</button> : null}
+              <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setManageId(null)}>Cancel</button>
+              <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { portal.updateMember(member.id, nextRole); setManageId(null); }}>Save changes</button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+      <Modal open={Boolean(removing)} title="Remove access" description="This administrator will lose access to this employer portal." onClose={() => setRemoveId(null)}>
+        {removing ? (
+          <div>
+            <p className="text-sm font-medium text-[#162e25]">{removing.name}</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setRemoveId(null)}>Keep access</button>
+              <button type="button" className="h-10 rounded-lg bg-[#b42318] px-3 text-sm font-medium text-white" onClick={() => { portal.removeMember(removing.id); setRemoveId(null); setManageId(null); }}>Remove access</button>
             </div>
           </div>
         ) : null}

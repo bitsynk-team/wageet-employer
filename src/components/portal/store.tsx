@@ -202,7 +202,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
         if (next.perDay > next.perCycle) return "The daily limit cannot exceed the pay-cycle limit.";
         if (next.minimum < 1000) return "The minimum withdrawal is ₦1,000.";
         if (next.tenureDays < 0) return "Employment duration cannot be negative.";
-        if (next.maxRequests < 1) return "Allow at least one request per cycle.";
+        if (next.maxRequests < 1) return "Enter at least one withdrawal.";
         setPolicy(next);
         setPolicySaved(true);
         setToast({ message: "Access policy saved. Withdrawals stay off until funding is complete." });
@@ -214,7 +214,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
         if (next.perDay > next.perCycle) return "The daily limit cannot exceed the pay-cycle limit.";
         if (next.minimum < 1000) return "The minimum withdrawal is ₦1,000.";
         if (next.tenureDays < 0) return "Employment duration cannot be negative.";
-        if (next.maxRequests < 1) return "Allow at least one request per cycle.";
+        if (next.maxRequests < 1) return "Enter at least one withdrawal.";
         setScheduledPolicy(next);
         setPolicySaved(true);
         setToast({ message: "Policy scheduled for 1 December 2026." });
@@ -372,7 +372,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
       },
       updateMember: (id, roleId) => {
         setTeam((current) => current.map((member) => (member.id === id ? { ...member, roleId } : member)));
-        setToast({ message: "Role updated." });
+        setToast({ message: "Member role updated." });
       },
       removeMember: (id) => {
         const member = team.find((item) => item.id === id);

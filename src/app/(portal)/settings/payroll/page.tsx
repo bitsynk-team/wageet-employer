@@ -5,6 +5,7 @@ import { useState } from "react";
 import { DateField, parsePortalDate } from "@/components/portal/date-field";
 import { Modal } from "@/components/portal/ui";
 import { SettingsFrame } from "@/components/portal/settings-nav";
+import { WeekExceptionDialog } from "@/components/portal/week-exception";
 import { usePortal } from "@/components/portal/store";
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -22,7 +23,9 @@ function cycleTitle(end: string) {
 export default function PayrollSettingsPage() {
   const portal = usePortal();
   const [open, setOpen] = useState(false);
+  const [weekOpen, setWeekOpen] = useState(false);
   const [exceptions, setExceptions] = useState<{ month: string; payday: string; cutoff: string }[]>([]);
+  const [weeks, setWeeks] = useState<{ period: string; payday: string; cutoff: string }[]>([]);
   const [draft, setDraft] = useState({ month: "December 2026", payday: "24 Dec 2026", cutoff: "22 Dec · 23:59 WAT" });
   return (
     <SettingsFrame description="Manage the regular payroll schedule and adjust individual paydays." aside={
@@ -73,6 +76,26 @@ export default function PayrollSettingsPage() {
           </ul>
         )}
       </section>
+      <section className="mt-4 rounded-2xl border border-[#e4e4e7] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-[#162e25]">Weekly exceptions</h2>
+            <p className="mt-1 text-sm text-[#4e6358]">Choose a different payday or withdrawal cut-off for one earning week.</p>
+          </div>
+          <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => setWeekOpen(true)}>Change one week</button>
+        </div>
+        {weeks.length === 0 ? <p className="mt-4 text-sm text-[#4e6358]">All weeks follow your regular schedule.</p> : (
+          <ul className="mt-4 divide-y divide-[#f0f2f0]">
+            {weeks.map((item) => (
+              <li key={item.period} className="flex items-center justify-between gap-3 py-3 text-sm">
+                <span><span className="block font-medium text-[#162e25]">{item.period}</span><span className="text-[#4e6358]">Payday {item.payday} · Cut-off {item.cutoff}</span></span>
+                <button type="button" className="text-[#b42318]" onClick={() => { setWeeks((current) => current.filter((row) => row.period !== item.period)); portal.notify("Regular dates restored."); }}>Restore</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <WeekExceptionDialog open={weekOpen} onClose={() => setWeekOpen(false)} onSaved={(value) => { setWeeks((current) => [value, ...current.filter((item) => item.period !== value.period)]); portal.notify("Exception saved."); }} />
       <Modal open={open} title="Add a monthly exception" description="Change dates for one earning period. Other months follow the regular schedule." onClose={() => setOpen(false)}>
         <div className="space-y-3">
           <div className="block text-sm">
@@ -89,7 +112,7 @@ export default function PayrollSettingsPage() {
           </div>
           <div className="flex justify-end gap-2">
             <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setOpen(false)}>Cancel</button>
-            <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { setExceptions((current) => [draft, ...current.filter((item) => item.month !== draft.month)]); portal.notify("Exception saved."); setOpen(false); }}>Save exception</button>
+            <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { setExceptions((current) => [draft, ...current.filter((item) => item.month !== draft.month)]); portal.notify("Monthly change saved."); setOpen(false); }}>Save exception</button>
           </div>
         </div>
       </Modal>
