@@ -33,7 +33,7 @@ function TransactionsContent() {
   const [exportOpen, setExportOpen] = useState(false);
   const [scope, setScope] = useState("Current view");
   const [format, setFormat] = useState("CSV");
-  const [ready, setReady] = useState("");
+  const [ready, setReady] = useState<{ filename: string; count: number; scope: string } | null>(null);
 
   const scoped = useMemo(
     () => (cycle === "All pay cycles" ? portal.transactions : portal.transactions.filter((item) => item.cycle === cycle)),
@@ -66,8 +66,13 @@ function TransactionsContent() {
     setQuery("");
   }
 
+  function countLabel(count: number) {
+    return `${count} ${count === 1 ? "transaction" : "transactions"}`;
+  }
+
   function exportFile() {
     const source = scope === "All transactions" ? portal.transactions : rows;
+    if (source.length === 0) return;
     const filename = format === "CSV" ? "Acme-Foods-transactions.csv" : "Acme-Foods-transactions.xlsx";
     const header = ["Reference", "Employee or organisation", "Date", "Type", "Status", "Amount", "Fee", "Payroll impact"];
     const body = source.map((item) => [item.reference, item.name, item.requested, item.kind === "Top-up" ? "Funding" : "Withdrawal", item.status, String(item.amount), String(item.fee ?? 0), String(payrollImpact(item))]);
@@ -81,7 +86,7 @@ function TransactionsContent() {
     link.click();
     URL.revokeObjectURL(url);
     setExportOpen(false);
-    setReady(`Export ready · ${filename}`);
+    setReady({ filename, count: source.length, scope });
   }
 
   return (
@@ -97,10 +102,21 @@ function TransactionsContent() {
         </button>
       </div>
       {ready ? (
-        <p className="mt-3 flex items-center justify-between rounded-lg border border-[#d7eadc] bg-[#e7f6ee] px-3 py-2 text-sm text-[#17803d]">
-          {ready}
-          <button type="button" className="text-xs font-medium" onClick={() => setReady("")}>Done</button>
-        </p>
+        <section className="mt-4 rounded-2xl border border-[#d7eadc] bg-[#e7f6ee] p-4 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-[#162e25]">Export ready</h2>
+              <p className="text-[#17803d]">Your transaction file is ready.</p>
+            </div>
+            <button type="button" className="text-xs font-medium text-[#162e25]" onClick={() => setReady(null)}>Done</button>
+          </div>
+          <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div><dt className="text-xs text-[#4e6358]">File</dt><dd className="font-medium text-[#162e25]">{ready.filename}</dd></div>
+            <div><dt className="text-xs text-[#4e6358]">Transactions</dt><dd className="font-medium text-[#162e25]">{countLabel(ready.count)}</dd></div>
+            <div><dt className="text-xs text-[#4e6358]">Organisation</dt><dd className="font-medium text-[#162e25]">{portal.workspaceName}</dd></div>
+            <div><dt className="text-xs text-[#4e6358]">Scope</dt><dd className="font-medium text-[#162e25]">{ready.scope}</dd></div>
+          </dl>
+        </section>
       ) : null}
       {portal.transactions.length === 0 ? (
         <EmptyBlock title="No transactions yet" body="Employee withdrawals and balance top-ups will appear here. Add funds so employees can access their earned pay." action={{ href: "/dashboard/add-funds", label: "Add funds" }} />
@@ -197,7 +213,7 @@ function TransactionsContent() {
       <Modal open={exportOpen} title="Export transactions" description={`Download a ledger for ${portal.workspaceName}.`} onClose={() => setExportOpen(false)}>
         <p className="text-sm font-medium text-[#162e25]">Records to include</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          {[["Current view", `${rows.length} transactions`], ["All transactions", `${portal.transactions.length} transactions`]].map(([label, hint]) => (
+          {[["Current view", countLabel(rows.length)], ["All transactions", countLabel(portal.transactions.length)]].map(([label, hint]) => (
             <button key={label} type="button" onClick={() => setScope(label)} className={`rounded-lg border px-3 py-2 text-left ${scope === label ? "border-[#153a2b] bg-[#f4f5ef]" : "border-[#e4e4e7]"}`}>
               <span className="block text-sm font-medium text-[#162e25]">{label}</span>
               <span className="block text-xs text-[#71717a]">{hint}</span>
@@ -211,9 +227,10 @@ function TransactionsContent() {
           ))}
         </div>
         <p className="mt-4 text-sm text-[#4e6358]">Included fields: reference, employee or organisation, date, type, status, amount, fee and payroll impact. Account numbers are masked.</p>
+        {scope === "Current view" && rows.length === 0 ? <p className="mt-3 text-sm text-[#b54708]">This view is empty. Choose All transactions to export.</p> : null}
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setExportOpen(false)}>Cancel</button>
-          <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={exportFile}>Export file</button>
+          <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white disabled:opacity-40" disabled={scope === "Current view" && rows.length === 0} onClick={exportFile}>Export file</button>
         </div>
       </Modal>
     </div>

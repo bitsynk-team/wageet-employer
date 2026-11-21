@@ -56,7 +56,7 @@ function RecordsDirectory() {
       const table = `<table><tr>${header.map((cell) => `<th>${cell}</th>`).join("")}</tr>${body.map((line) => `<tr>${line.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</table>`;
       download("work-records.xls", table, "application/vnd.ms-excel");
     }
-    portal.notify(kind === "csv" ? "Records CSV downloaded." : "Records Excel downloaded.");
+    setNotice(kind === "csv" ? "Export prepared · work-records.csv" : "Export prepared · work-records.xls");
     setExportOpen(false);
   }
 

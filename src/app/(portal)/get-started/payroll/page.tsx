@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DateField, parsePortalDate } from "@/components/portal/date-field";
-import { Modal } from "@/components/portal/ui";
+import { WeekExceptionDialog } from "@/components/portal/week-exception";
 import { RequiredNote, SetupActions, SetupCard, SetupPage, SupportLine, fieldClass, labelClass } from "@/components/portal/setup-ui";
 import { usePortal } from "@/components/portal/store";
 import type { Payroll } from "@/lib/types";
@@ -17,8 +17,6 @@ export default function PayrollSetupPage() {
   const [frequency, setFrequency] = useState<Payroll["frequency"]>(portal.payroll.frequency);
   const [open, setOpen] = useState(false);
   const [exceptionOpen, setExceptionOpen] = useState(false);
-  const [payday, setPayday] = useState("Day after the week ends");
-  const [cutoff, setCutoff] = useState("2 days before payday");
   const [dates, setDates] = useState({
     start: asDmy(portal.payroll.start, "01/11/2026"),
     end: asDmy(portal.payroll.end, "30/11/2026"),
@@ -108,28 +106,7 @@ export default function PayrollSetupPage() {
         </div>
       </SetupCard>
       <SupportLine align="left" />
-      <Modal open={exceptionOpen} title="Change one week" description="Choose the earning period, then adjust when employees can withdraw and when they get paid." onClose={() => setExceptionOpen(false)}>
-        <label className="block text-sm">
-          <span className={labelClass}>Earning week</span>
-          <input className={fieldClass} value="1–6 Dec 2026" readOnly />
-        </label>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm">
-            <span className={labelClass}>Payday</span>
-            <input className={fieldClass} value={payday} onChange={(event) => setPayday(event.target.value)} />
-          </label>
-          <label className="text-sm">
-            <span className={labelClass}>Withdrawal cut-off</span>
-            <input className={fieldClass} value={cutoff} onChange={(event) => setCutoff(event.target.value)} />
-          </label>
-        </div>
-        <p className="mt-3 text-sm text-[#526459]">Payday 7 Dec 2026 · Withdrawals close 5 Dec 2026 · 23:59 WAT</p>
-        <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="h-10 rounded-lg border border-[#dce4de] px-3 text-sm" onClick={() => { setPayday("Day after the week ends"); setCutoff("2 days before payday"); setExceptionOpen(false); }}>Use regular dates</button>
-          <button type="button" className="h-10 rounded-lg border border-[#dce4de] px-3 text-sm" onClick={() => setExceptionOpen(false)}>Cancel</button>
-          <button type="button" className="h-10 rounded-lg bg-[#0f2a1f] px-3 text-sm text-[#fffff4]" onClick={() => setExceptionOpen(false)}>Save exception</button>
-        </div>
-      </Modal>
+      <WeekExceptionDialog open={exceptionOpen} onClose={() => setExceptionOpen(false)} onSaved={() => portal.notify("Exception saved.")} />
     </SetupPage>
   );
 }

@@ -38,6 +38,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
   const [sortOpen, setSortOpen] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [prepared, setPrepared] = useState("");
   const [menuId, setMenuId] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(initialInvite);
   const [rows, setRows] = useState<Draft[]>([{ name: "", email: "", start: "", account: "", bank: "", open: true }]);
@@ -79,7 +80,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
       const table = `<table><tr>${headers.map((cell) => `<th>${cell}</th>`).join("")}</tr>${lines.map((line) => `<tr>${line.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</table>`;
       download(`${title}.xls`, table, "application/vnd.ms-excel");
     }
-    portal.notify(kind === "csv" ? "CSV export downloaded." : "Excel export downloaded.");
+    setPrepared(kind === "csv" ? "Export prepared · employees.csv" : "Export prepared · employees.xls");
     setExportOpen(false);
   }
 
@@ -132,6 +133,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
           <button type="button" className="inline-flex h-10 items-center rounded-lg bg-[#0f2a1f] px-3 text-xs font-bold text-[#fffff4]" onClick={() => setInviteOpen(true)}>Invite employee</button>
         </div>
       </div>
+      {prepared ? <p className="mt-3 rounded-lg border border-[#d7eadc] bg-[#e7f6ee] px-3 py-2 text-sm text-[#17803d]">{prepared}</p> : null}
 
       <div className="mt-4 flex gap-6 border-b border-[#ececed] text-xs font-semibold tracking-[0.08em]">
         <button type="button" className={cn("pb-2", tab === "all" ? "border-b-2 border-[#153a2b] text-[#162e25]" : "text-[#71717a]")} onClick={() => { setTab("all"); setStatus("All status"); setPage(1); }}>ALL EMPLOYEES</button>
