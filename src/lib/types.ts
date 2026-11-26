@@ -173,6 +173,22 @@ export type Payroll = {
   end: string;
   payday: string;
   cutoff: string;
+  weekStart?: string;
+  payoutTime?: string;
+};
+
+export type MonthException = {
+  month: string;
+  payday: string;
+  cutoff: string;
+  scope: "month" | "year";
+};
+
+export type PeriodException = {
+  period: string;
+  payday: string;
+  cutoff: string;
+  payout?: string;
 };
 
 export type SetupBank = {

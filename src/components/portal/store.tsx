@@ -20,7 +20,7 @@ import {
   transactions as seedTransactions,
   workspace,
 } from "@/lib/mock-data";
-import type { Delivery, Employee, FundingPhase, IntegrationSource, InvitationResult, Notice, Organisation, Payroll, PermissionSet, Policy, Profile, Role, RoleAccess, SetupBank, SupportRequest, TeamMember, Transaction, WorkRecord } from "@/lib/types";
+import type { Delivery, Employee, FundingPhase, IntegrationSource, InvitationResult, MonthException, Notice, Organisation, Payroll, PeriodException, PermissionSet, Policy, Profile, Role, RoleAccess, SetupBank, SupportRequest, TeamMember, Transaction, WorkRecord } from "@/lib/types";
 
 type Toast = { message: string } | null;
 
@@ -63,6 +63,16 @@ type PortalStore = {
   markNoticesRead: () => void;
   saveOrganisation: (value: Organisation) => void;
   savePayroll: (value: Payroll) => void;
+  monthExceptions: MonthException[];
+  weekExceptions: PeriodException[];
+  dayExceptions: PeriodException[];
+  payrollNotice: string;
+  saveMonthException: (value: MonthException) => void;
+  removeMonthException: (month: string) => void;
+  saveWeekException: (value: PeriodException) => void;
+  removeWeekException: (period: string) => void;
+  saveDayException: (value: PeriodException) => void;
+  removeDayException: (period: string) => void;
   savePolicy: (value: Policy) => string | null;
   saveScheduledPolicy: (value: Policy) => string | null;
   cancelSchedule: () => void;
@@ -77,7 +87,7 @@ type PortalStore = {
   createRole: (input: { name: string; description: string; access: RoleAccess; setIds: string[] }) => string | null;
   updateRole: (id: string, input: { name: string; description: string; access: RoleAccess; setIds: string[] }) => string | null;
   deleteRole: (id: string) => string | null;
-  inviteMember: (input: { email: string; roleId: string }) => string | null;
+  inviteMember: (input: { email: string; roleId: string; employeeId?: string }) => string | null;
   updateMember: (id: string, roleId: string) => void;
   removeMember: (id: string) => void;
   resendInvite: (id: string) => void;
@@ -124,6 +134,10 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState(seedProfile);
   const [organisation, setOrganisation] = useState(seedOrganisation);
   const [payroll, setPayroll] = useState(seedPayroll);
+  const [monthExceptions, setMonthExceptions] = useState<MonthException[]>([]);
+  const [weekExceptions, setWeekExceptions] = useState<PeriodException[]>([]);
+  const [dayExceptions, setDayExceptions] = useState<PeriodException[]>([]);
+  const [payrollNotice, setPayrollNotice] = useState("");
   const [policy, setPolicy] = useState(seedPolicy);
   const [employees, setEmployees] = useState(seedEmployees);
   const [transactions, setTransactions] = useState(seedTransactions);
@@ -195,6 +209,38 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
         setPayroll(next);
         setPayrollSaved(true);
         setToast({ message: "Payroll cycle saved." });
+      },
+      monthExceptions,
+      weekExceptions,
+      dayExceptions,
+      payrollNotice,
+      saveMonthException: (next) => {
+        setMonthExceptions((current) => [next, ...current.filter((item) => item.month !== next.month)]);
+        setPayrollNotice(`${next.month} payday saved.`);
+        setToast({ message: "Monthly change saved." });
+      },
+      removeMonthException: (month) => {
+        setMonthExceptions((current) => current.filter((item) => item.month !== month));
+        setPayrollNotice("");
+        setToast({ message: "Regular dates restored." });
+      },
+      saveWeekException: (next) => {
+        setWeekExceptions((current) => [next, ...current.filter((item) => item.period !== next.period)]);
+        setPayrollNotice("");
+        setToast({ message: "Exception saved." });
+      },
+      removeWeekException: (period) => {
+        setWeekExceptions((current) => current.filter((item) => item.period !== period));
+        setToast({ message: "Regular dates restored." });
+      },
+      saveDayException: (next) => {
+        setDayExceptions((current) => [next, ...current.filter((item) => item.period !== next.period)]);
+        setPayrollNotice("");
+        setToast({ message: "Exception saved." });
+      },
+      removeDayException: (period) => {
+        setDayExceptions((current) => current.filter((item) => item.period !== period));
+        setToast({ message: "Regular dates restored." });
       },
       savePolicy: (next) => {
         if (next.percentage < 1 || next.percentage > 70) return "The access percentage must be between 1 and 70.";
@@ -361,12 +407,15 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
       },
       inviteMember: (input) => {
         const email = input.email.trim().toLowerCase();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Enter a work email to send the invitation.";
-        if (team.some((member) => member.email.toLowerCase() === email)) return "This email already has access or a pending invitation.";
-        const local = email.split("@")[0] ?? "New member";
-        const name = local.replace(/[._-]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-        const initials = name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
-        setTeam((current) => [...current, { id: email, name, email, initials, roleId: input.roleId, status: "Invited" }]);
+        const onboarded = employees.filter((person) => person.status !== "Invited");
+        const person = input.employeeId
+          ? onboarded.find((item) => item.id === input.employeeId)
+          : onboarded.find((item) => item.email.toLowerCase() === email);
+        if (!person) return "Choose an onboarded employee from your company.";
+        if (!input.roleId || input.roleId === "owner" || !roles.some((role) => role.id === input.roleId)) return "Choose a role other than the workspace owner.";
+        if (team.some((member) => member.email.toLowerCase() === person.email.toLowerCase())) return "This email already has access or a pending invitation.";
+        const initials = person.name.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+        setTeam((current) => [...current, { id: person.email, name: person.name, email: person.email, initials, roleId: input.roleId, status: "Invited" }]);
         setToast({ message: "Invitation sent." });
         return null;
       },
@@ -595,6 +644,10 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
       organisation,
       payroll,
       payrollSaved,
+      monthExceptions,
+      weekExceptions,
+      dayExceptions,
+      payrollNotice,
       permissionSets,
       policy,
       policySaved,

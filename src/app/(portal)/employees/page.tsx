@@ -32,7 +32,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All status");
   const [sort, setSort] = useState("Default order");
-  const [pageSize, setPageSize] = useState("10");
+  const [pageSize, setPageSize] = useState("15");
   const [page, setPage] = useState(1);
   const [statusOpen, setStatusOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -65,11 +65,11 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
 
   function exportFile(kind: "csv" | "excel") {
     const headers = tab === "all"
-      ? ["Employee", "Email", "Employee ID", "Employment", "Joined", "Bank details", "Access"]
+      ? ["Name", "Email", "Role", "Joined Date", "Account Details", "Status"]
       : ["Name", "Email", "Role", "Invited Date", "Invited By", "Status"];
     const lines = filtered.map((person) =>
       tab === "all"
-        ? [person.name, person.email, person.code, person.department, person.joined, person.account, person.status]
+        ? [person.name, person.email, person.role, person.joined, person.account, person.status]
         : [person.name, person.email, person.role, person.joined, person.invitedBy, person.delivery],
     );
     const title = tab === "all" ? "employees" : "invitations";
@@ -155,7 +155,10 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead>
             <tr className="bg-[#f7f7f5] text-xs text-[#71717a]">
-              {(tab === "all" ? ["Employee", "Employee ID", "Employment", "Bank details", "Access", ""] : ["Name", "Role", "Invited date", "Invited by", "Status", ""]).map((heading) => (
+              {(tab === "all"
+                ? ["Name", "Email", "Role", "Joined Date", "Account Details", "Status", ""]
+                : ["Name", "Email", "Role", "Invited Date", "Invited By", "Status", ""]
+              ).map((heading) => (
                 <th key={heading || "menu"} className="px-4 py-2 font-medium first:rounded-l-lg last:rounded-r-lg">{heading}</th>
               ))}
             </tr>
@@ -163,7 +166,7 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
           <tbody>
             {visible.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center">
+                <td colSpan={7} className="px-4 py-10 text-center">
                   {portal.employees.length === 0 && !query ? (
                     <>
                       <p className="text-sm font-semibold text-[#162e25]">{tab === "all" ? "No employees yet" : "No invitations yet"}</p>
@@ -181,24 +184,20 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
             ) : visible.map((person) => (
               <tr key={person.id} className="border-b border-[#f3f3f1] hover:bg-[#f8f8f8]">
                 <td className="px-4 py-3.5">
-                  <Link href={tab === "invited" ? `/employees/${person.id}?view=invitation` : `/employees/${person.id}`} className="block font-medium text-[#162e25]">{person.name}</Link>
-                  <span className="block text-xs text-[#71717a]">{person.email}</span>
+                  <Link href={tab === "invited" ? `/employees/${person.id}?view=invitation` : `/employees/${person.id}`} className="font-medium text-[#162e25]">{person.name}</Link>
                 </td>
+                <td className="px-4 py-3.5 text-[#3f3f46]">{person.email}</td>
+                <td className="px-4 py-3.5 text-[#3f3f46]">{person.role}</td>
                 {tab === "all" ? (
                   <>
-                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.code}</td>
-                    <td className="px-4 py-3.5">
-                      <span className="block text-[#162e25]">{person.department}</span>
-                      <span className="block text-xs text-[#71717a]">Joined {person.joined}</span>
-                    </td>
+                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.joined}</td>
                     <td className="px-4 py-3.5"><StatusPill value={person.account} /></td>
                     <td className="px-4 py-3.5"><StatusPill value={person.status} /></td>
                   </>
                 ) : (
                   <>
-                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.role}</td>
-                    <td className="px-4 py-3.5">{person.joined}</td>
-                    <td className="px-4 py-3.5">{person.invitedBy}</td>
+                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.joined}</td>
+                    <td className="px-4 py-3.5 text-[#3f3f46]">{person.invitedBy}</td>
                     <td className="px-4 py-3.5"><StatusPill value={person.delivery} /></td>
                   </>
                 )}
@@ -214,15 +213,13 @@ function Directory({ initialInvite, initialTab }: { initialInvite: boolean; init
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#ececed] pt-3 text-xs text-[#71717a]">
         <div className="flex items-center gap-3">
-          <Filter label="Show" open={sizeOpen} onToggle={() => setSizeOpen((open) => !open)} options={["10", "25", "50"]} value={pageSize} onChange={(value) => { setPageSize(value); setPage(1); setSizeOpen(false); }} />
-          <p>Showing {filtered.length === 0 ? 0 : (page - 1) * size + 1}–{Math.min(page * size, filtered.length)} of {filtered.length}</p>
+          <Filter label="Show" open={sizeOpen} onToggle={() => setSizeOpen((open) => !open)} options={["15", "25", "50"]} value={pageSize} onChange={(value) => { setPageSize(value); setPage(1); setSizeOpen(false); }} />
+          <p>{filtered.length} {tab === "all" ? "employees" : "invitations"}</p>
         </div>
         <div className="flex items-center gap-1">
-          <button type="button" className="h-8 rounded-lg px-2 disabled:opacity-40" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>Previous</button>
-          {Array.from({ length: pages }, (_, index) => index + 1).map((number) => (
-            <button key={number} type="button" className={cn("inline-flex size-8 items-center justify-center rounded-lg", number === page ? "bg-[#153a2b] font-medium text-white" : "text-[#162e25]")} onClick={() => setPage(number)} aria-current={number === page ? "page" : undefined}>{number}</button>
-          ))}
-          <button type="button" className="h-8 rounded-lg px-2 disabled:opacity-40" disabled={page >= pages} onClick={() => setPage((current) => current + 1)}>Next</button>
+          {pages > 1 ? <button type="button" className="h-8 rounded-lg px-2 disabled:opacity-40" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>Previous</button> : null}
+          <p>Page {page} of {pages}</p>
+          {pages > 1 ? <button type="button" className="h-8 rounded-lg px-2 disabled:opacity-40" disabled={page >= pages} onClick={() => setPage((current) => current + 1)}>Next</button> : null}
         </div>
       </div>
 

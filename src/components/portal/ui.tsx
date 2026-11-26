@@ -77,11 +77,15 @@ const tones: Record<string, string> = {
   Connected: "bg-[#e7f6ee] text-[#17803d]",
   Completed: "bg-[#e7f6ee] text-[#17803d]",
   Confirmed: "bg-[#e7f6ee] text-[#17803d]",
+  Ready: "bg-[#e7f6ee] text-[#17803d]",
   Corrected: "bg-[#e7f6ee] text-[#17803d]",
   Open: "bg-[#fbf1e0] text-[#b54708]",
   Failed: "bg-[#fdecec] text-[#d92d20]",
   Missing: "text-[#b58105]",
   "Needs review": "bg-[#fbf1e0] text-[#b54708]",
+  "Unmatched ID": "bg-[#fbf1e0] text-[#b54708]",
+  "Invalid amount": "bg-[#fdecec] text-[#d92d20]",
+  Duplicate: "bg-[#f4f4f5] text-[#71717a]",
   Held: "bg-[#fbf1e0] text-[#b54708]",
   Pending: "bg-[#fbf1e0] text-[#b54708]",
   Invited: "bg-[#fbf1e0] text-[#b54708]",
@@ -132,12 +136,14 @@ export function Modal({
   description,
   onClose,
   children,
+  sheet = false,
 }: {
   open: boolean;
   title: string;
   description?: string;
   onClose: () => void;
   children: React.ReactNode;
+  sheet?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -152,11 +158,18 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <button type="button" className="absolute inset-0 bg-[#0f2a1f]/40" aria-label="Close dialog" onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-labelledby="dialog-title" className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
-        <h2 id="dialog-title" className="text-lg font-semibold text-[#0f2a1f]">
+      <div role="dialog" aria-modal="true" aria-labelledby="dialog-title" className={cn("relative z-10 w-full rounded-2xl bg-white shadow-xl", sheet ? "max-w-[510px] border border-[#dfe5df] px-[25px] pt-[23px] pb-5" : "max-w-lg p-5")}>
+        {sheet ? (
+          <button type="button" aria-label="Close" onClick={onClose} className="absolute top-3 right-3 inline-flex size-10 items-center justify-center text-[#53675e]">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+          </button>
+        ) : null}
+        <h2 id="dialog-title" className={sheet ? "pr-8 text-[23px] leading-8 font-semibold text-[#112c23]" : "text-lg font-semibold text-[#0f2a1f]"}>
           {title}
         </h2>
-        {description ? <p className="mt-1 text-sm text-[#526459]">{description}</p> : null}
+        {description ? <p className={sheet ? "mt-3 text-sm text-[#53675e]" : "mt-1 text-sm text-[#526459]"}>{description}</p> : null}
         <div className="mt-4">{children}</div>
       </div>
     </div>

@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [resetOpen, setResetOpen] = useState(false);
   const [name, setName] = useState(portal.profile.name);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState<"saved" | "pending" | "updated" | null>(null);
   const initials = portal.profile.name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   return (
@@ -39,6 +40,9 @@ export default function SettingsPage() {
               <button type="button" className="h-11 rounded-lg border border-[#e4e4e7] bg-white px-3 text-sm" onClick={() => setEmailOpen(true)}>Change email</button>
             </div>
           </div>
+          {notice === "saved" ? <p className="mt-3 rounded-lg border border-[#d7eadc] bg-[#e7f6ee] px-3 py-2 text-sm text-[#17803d]">Your profile has been saved.</p> : null}
+          {notice === "pending" ? <p className="mt-3 rounded-lg border border-[#f4e4c4] bg-[#fbf6ea] px-3 py-2 text-sm text-[#8a5a10]">Awaiting verification · <Link href="/help/new" className="font-medium underline">Review request</Link></p> : null}
+          {notice === "updated" ? <p className="mt-3 rounded-lg border border-[#d7eadc] bg-[#e7f6ee] px-3 py-2 text-sm text-[#17803d]">Sign-in email updated · <Link href="/settings/audit" className="font-medium underline">View audit log</Link></p> : null}
           <div className="mt-4 flex justify-end">
             <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { setName(portal.profile.name); setError(""); setEditOpen(true); }}>Edit profile</button>
           </div>
@@ -56,7 +60,7 @@ export default function SettingsPage() {
         </button>
       </section>
       <Modal open={editOpen} title="Edit profile" description="Update the name shown on your administrator account." onClose={() => setEditOpen(false)}>
-        <form onSubmit={(event) => { event.preventDefault(); if (name.trim().length < 2) { setError("Enter a display name."); return; } portal.saveProfile({ ...portal.profile, name: name.trim() }); setEditOpen(false); }} className="space-y-3">
+        <form onSubmit={(event) => { event.preventDefault(); if (name.trim().length < 2) { setError("Enter a display name."); return; } portal.saveProfile({ ...portal.profile, name: name.trim() }); setNotice("saved"); setEditOpen(false); }} className="space-y-3">
           <Field label="Display name" error={error}><input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} /></Field>
           <div className="flex justify-end gap-2">
             <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setEditOpen(false)}>Cancel</button>
@@ -64,7 +68,7 @@ export default function SettingsPage() {
           </div>
         </form>
       </Modal>
-      <EmailChange open={emailOpen} onClose={() => setEmailOpen(false)} />
+      <EmailChange open={emailOpen} onClose={() => setEmailOpen(false)} onUpdated={() => setNotice("updated")} onPending={() => setNotice("pending")} />
       <ResetPassword open={resetOpen} onClose={() => setResetOpen(false)} />
     </SettingsFrame>
   );
@@ -74,7 +78,7 @@ function validEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-function EmailChange({ open, onClose }: { open: boolean; onClose: () => void }) {
+function EmailChange({ open, onClose, onUpdated, onPending }: { open: boolean; onClose: () => void; onUpdated: () => void; onPending: () => void }) {
   const portal = usePortal();
   const [step, setStep] = useState<"email" | "password" | "code" | "done" | "recovery" | "recovered">("email");
   const [email, setEmail] = useState("");
@@ -128,6 +132,7 @@ function EmailChange({ open, onClose }: { open: boolean; onClose: () => void }) 
             event.preventDefault();
             if (!validEmail(recovery)) { setError("Enter a complete email address."); return; }
             setError("");
+            onPending();
             setStep("recovered");
           }}>
             <Field label="Reachable email" error={error}><input className={inputClass} placeholder="name@company.com" value={recovery} onChange={(event) => setRecovery(event.target.value)} /></Field>
@@ -191,6 +196,7 @@ function EmailChange({ open, onClose }: { open: boolean; onClose: () => void }) 
           const message = portal.changeEmail(email);
           if (message) { setError(message); return; }
           setError("");
+          onUpdated();
           setStep("done");
         }}>
           <Field label="New sign-in email"><input className={inputClass} value={email} readOnly /></Field>

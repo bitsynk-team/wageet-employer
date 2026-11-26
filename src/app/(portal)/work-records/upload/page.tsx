@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { DarkButton, OutlineLink, RecordActions, RecordCard, RecordLine, RecordNote } from "@/components/portal/records-ui";
+import Link from "next/link";
+import { useRef, useState } from "react";
+import { OutlineLink, RecordActions, RecordLine, RecordNote } from "@/components/portal/records-ui";
 import { usePortal } from "@/components/portal/store";
+import { useRouter } from "next/navigation";
 
 const columns = [
   ["employee_id", "EMP001"],
@@ -13,63 +15,60 @@ const columns = [
 
 export default function UploadRecordsPage() {
   const portal = usePortal();
-  const [period, setPeriod] = useState("November 2026");
-  const [fileName, setFileName] = useState("");
-  const [error, setError] = useState("");
+  const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [invalid, setInvalid] = useState(false);
   const [template, setTemplate] = useState(false);
-  const [posted, setPosted] = useState(false);
 
   function onFile(file: File | undefined) {
     if (!file) return;
     if (!/\.(csv|xlsx)$/i.test(file.name)) {
-      setError("Use a CSV or Excel (.xlsx) file from the spreadsheet template. Nothing was posted.");
-      setFileName("");
+      setInvalid(true);
+      if (fileRef.current) fileRef.current.value = "";
       return;
     }
-    setError("");
-    setFileName(file.name);
+    setInvalid(false);
+    router.push("/work-records/upload/review");
   }
 
   return (
     <div className="px-4 py-4">
       <h1 className="text-[22px] font-semibold text-[#0f2a1f]">Upload work records</h1>
-      <p className="mt-1 text-sm text-[#526459]">Contract staff · Upload employer-confirmed work dates, hours and earnings.</p>
-      <RecordCard title="Work records file">
+      <p className="mt-1 text-sm text-[#526459]">{invalid ? "Upload employer-submitted work dates, hours and earnings for a payroll period." : "Contract staff · Upload employer-confirmed work dates, hours and earnings."}</p>
+      <section className="mt-4 max-w-[760px] rounded-2xl border border-[#e6e8e3] bg-[#f7f8f6] p-5">
+        <h2 className="text-base font-semibold text-[#0f2a1f]">Work records file</h2>
         <p className="mt-1 text-sm text-[#526459]">Use one row per employee and work date.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-xs text-[#71717a]">Organisation</p>
-            <p className="text-sm font-medium text-[#0f2a1f]">{portal.workspaceName}</p>
-          </div>
-          <div>
-            <p className="text-xs text-[#71717a]">Pay period</p>
-            <p className="text-sm font-medium text-[#0f2a1f]">{period}</p>
-          </div>
+          <label className="block text-sm">
+            <span className="font-medium text-[#162e25]">Organisation</span>
+            <input readOnly value={portal.workspaceName} className="mt-1.5 h-11 w-full rounded-lg border border-[#e4e4e7] bg-white px-3 text-sm text-[#162e25]" />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-[#162e25]">Pay period</span>
+            <input readOnly value="November 2026" className="mt-1.5 h-11 w-full rounded-lg border border-[#e4e4e7] bg-white px-3 text-sm text-[#162e25]" />
+          </label>
         </div>
-        <button type="button" className="mt-4 text-sm font-medium text-[#17803d] underline" onClick={() => setTemplate(true)}>Spreadsheet template ↗</button>
-        <label className="mt-4 flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#d5ddd6] bg-[#f8f8f8] text-sm text-[#526459]">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <button type="button" className="text-sm font-medium text-[#17803d]" onClick={() => setTemplate(true)}>{invalid ? "View spreadsheet template ↗" : "Spreadsheet template ↗"}</button>
+          <Link href="/work-records/upload/past" className="text-sm font-medium text-[#17803d]">Upload a past period</Link>
+        </div>
+        <div
+          className="mt-3 flex flex-col items-center rounded-xl border border-dashed border-[#d5ddd6] bg-white px-4 py-6 text-center"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => { event.preventDefault(); onFile(event.dataTransfer.files?.[0]); }}
+        >
           <img src="/icons/records/upload-lg.svg" alt="" className="size-6" />
-          <span>{fileName || "Choose a spreadsheet or drop it here"}</span>
-          <span className="text-xs">CSV or Excel (.xlsx)</span>
-          <input type="file" className="sr-only" accept=".csv,.xlsx,.xls" onChange={(event) => onFile(event.target.files?.[0])} />
-        </label>
-        {error ? <p className="mt-2 text-sm text-[#b42318]">{error}</p> : null}
+          <p className="mt-2 text-sm font-semibold text-[#162e25]">Choose a spreadsheet or drop it here</p>
+          <p className="mt-0.5 text-xs text-[#71717a]">CSV or Excel (.xlsx)</p>
+          <button type="button" className="mt-3 inline-flex h-9 items-center rounded-lg border border-[#dce4de] bg-white px-4 text-sm text-[#162e25]" onClick={() => fileRef.current?.click()}>{invalid ? "Choose another file" : "Choose file"}</button>
+          <input ref={fileRef} type="file" className="sr-only" accept=".csv,.xlsx" onChange={(event) => onFile(event.target.files?.[0])} />
+        </div>
+        {invalid ? <p className="mt-2 text-sm text-[#b42318]">File could not be read. Check the template headings and upload the file again.</p> : null}
         <RecordNote>Earnings update only after you review and confirm the valid records.</RecordNote>
-        {posted ? <p className="mt-3 text-sm text-[#17803d]">{fileName} is ready in Submissions for {period}.</p> : null}
-        <RecordActions>
-          <OutlineLink href="/work-records/all">Back to records</OutlineLink>
-          <button type="button" className="inline-flex h-10 items-center rounded-lg border border-[#dce4de] bg-white px-4 text-sm" onClick={() => setPeriod(period === "November 2026" ? "October 2026" : "November 2026")}>Upload a past period</button>
-          <DarkButton onClick={() => {
-            if (!fileName) {
-              setError("Choose a CSV or Excel file.");
-              return;
-            }
-            portal.markRecordsSubmitted();
-            portal.notify(`${fileName} posted for ${period}.`);
-            setPosted(true);
-          }}>Choose file</DarkButton>
-        </RecordActions>
-      </RecordCard>
+        <div className="mt-4">
+          <OutlineLink href="/work-records">Back to records</OutlineLink>
+        </div>
+      </section>
       {template ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button type="button" className="absolute inset-0 bg-[#0f2a1f]/40" aria-label="Close dialog" onClick={() => setTemplate(false)} />

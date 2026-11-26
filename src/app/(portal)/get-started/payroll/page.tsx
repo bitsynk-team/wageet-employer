@@ -23,6 +23,19 @@ export default function PayrollSetupPage() {
     payday: asDmy(portal.payroll.payday, "30/11/2026"),
     cutoff: asDmy(portal.payroll.cutoff, "28/11/2026"),
   });
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const initialDates = {
+    start: asDmy(portal.payroll.start, "01/11/2026"),
+    end: asDmy(portal.payroll.end, "30/11/2026"),
+    payday: asDmy(portal.payroll.payday, "30/11/2026"),
+    cutoff: asDmy(portal.payroll.cutoff, "28/11/2026"),
+  };
+  const dirty = frequency !== portal.payroll.frequency || (frequency === "Monthly" && (dates.start !== initialDates.start || dates.end !== initialDates.end || dates.payday !== initialDates.payday || dates.cutoff !== initialDates.cutoff));
+
+  function leave() {
+    if (dirty) setDiscardOpen(true);
+    else router.push("/get-started");
+  }
 
   function save() {
     const cycle =
@@ -102,11 +115,24 @@ export default function PayrollSetupPage() {
               </p>
             </div>
           </div>
-          <SetupActions backHref="/get-started" primary="Save cycle" onPrimary={save} />
+          <SetupActions backHref="/get-started" primary="Save cycle" onPrimary={save} onBack={leave} />
         </div>
       </SetupCard>
       <SupportLine align="left" />
-      <WeekExceptionDialog open={exceptionOpen} onClose={() => setExceptionOpen(false)} onSaved={() => portal.notify("Exception saved.")} />
+      <WeekExceptionDialog open={exceptionOpen} onClose={() => setExceptionOpen(false)} />
+      {discardOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+          <button type="button" className="absolute inset-0 bg-[#0f2a1f]/40" aria-label="Close dialog" onClick={() => setDiscardOpen(false)} />
+          <div role="dialog" aria-modal="true" aria-labelledby="discard-payroll-title" className="relative z-10 w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+            <h2 id="discard-payroll-title" className="text-lg font-semibold text-[#142e24]">Discard unsaved changes?</h2>
+            <p className="mt-2 text-sm text-[#52655b]">Your payroll changes haven’t been saved.</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" className="h-10 rounded-lg border border-[#dfe5dd] px-3 text-sm font-medium text-[#142e24]" onClick={() => setDiscardOpen(false)}>Keep editing</button>
+              <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => router.push("/get-started")}>Discard changes</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </SetupPage>
   );
 }
