@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { MemberSearch } from "@/components/portal/member-search";
+import { DialogActions, MailIcon, MemberRow, TrashIcon, dangerButton, primaryButton, quietButton } from "@/components/portal/role-dialogs";
 import { Field, Modal, inputClass } from "@/components/portal/ui";
 import { usePortal } from "@/components/portal/store";
 
@@ -15,12 +17,12 @@ export default function RolesPage() {
   const [prepared, setPrepared] = useState("");
   const [manageId, setManageId] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
-  const [invite, setInvite] = useState({ email: "", roleId: portal.roles.find((item) => item.kind === "Custom role")?.id ?? "" });
+  const [invite, setInvite] = useState({ email: "", employeeId: "", roleId: portal.roles.find((item) => item.id !== "owner")?.id ?? "" });
   const [error, setError] = useState("");
   const [nextRole, setNextRole] = useState("");
   const member = portal.team.find((item) => item.id === manageId);
   const removing = portal.team.find((item) => item.id === removeId);
-  const customRoles = portal.roles.filter((item) => item.kind === "Custom role");
+  const assignableRoles = portal.roles.filter((item) => item.id !== "owner");
 
   function download() {
     const teamExport = exportData === "Team members";
@@ -57,7 +59,7 @@ export default function RolesPage() {
             </button>
           )}
           {tab === "Roles" ? <Link href="/roles/new" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white"><img src="/icons/records/add.svg" alt="" className="size-4" />Create role</Link> : null}
-          {tab === "Team members" ? <button type="button" onClick={() => { setError(""); setInviteOpen(true); }} className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white"><img src="/icons/records/add.svg" alt="" className="size-4" />Invite member</button> : null}
+          {tab === "Team members" ? <button type="button" onClick={() => { setError(""); setInvite({ email: "", employeeId: "", roleId: assignableRoles[0]?.id ?? "" }); setInviteOpen(true); }} className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white"><img src="/icons/records/add.svg" alt="" className="size-4" />Invite member</button> : null}
           {tab === "Permissions" ? <Link href="/roles/permissions/new" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white"><img src="/icons/records/add.svg" alt="" className="size-4" />Create permission set</Link> : null}
         </div>
       </div>
@@ -163,65 +165,87 @@ export default function RolesPage() {
         </section>
       ) : null}
 
-      <Modal open={exportOpen} title="Export data" description="Download the full list for this workspace." onClose={() => setExportOpen(false)}>
-        <p className="text-sm font-medium text-[#162e25]">Data</p>
-        <div className="mt-2 flex gap-2">
-          {(["Roles", "Team members"] as const).map((item) => (
-            <button key={item} type="button" onClick={() => setExportData(item)} className={`h-9 rounded-lg border px-3 text-sm ${exportData === item ? "border-[#153a2b] bg-[#f4f5ef]" : "border-[#e4e4e7]"}`}>{item}</button>
-          ))}
+      <Modal sheet open={exportOpen} title="Export data" description="Download the full list for this workspace." onClose={() => setExportOpen(false)}>
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="font-medium text-[#112c23]">Data</span>
+          <select className="bg-transparent text-[#112c23] outline-none" value={exportData} onChange={(event) => setExportData(event.target.value as "Roles" | "Team members")}>
+            <option>Roles</option>
+            <option>Team members</option>
+          </select>
         </div>
-        <p className="mt-4 text-sm font-medium text-[#162e25]">File format</p>
-        <div className="mt-2 flex gap-2">
-          {["CSV (.csv)", "Excel (.xlsx)"].map((item) => (
-            <button key={item} type="button" onClick={() => setExportFormat(item)} className={`h-9 rounded-lg border px-3 text-sm ${exportFormat === item ? "border-[#153a2b] bg-[#f4f5ef]" : "border-[#e4e4e7]"}`}>{item}</button>
-          ))}
+        <div className="mt-4 border-t border-[#dfe5df] pt-4">
+          <p className="text-sm font-medium text-[#112c23]">File format</p>
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
+            {["CSV (.csv)", "Excel (.xlsx)"].map((item) => (
+              <button key={item} type="button" onClick={() => setExportFormat(item)} className="flex h-[49px] items-center gap-3 rounded-lg border border-[#dfe5df] bg-white px-3 text-left text-sm text-[#112c23]">
+                <span className="inline-flex size-[17px] items-center justify-center rounded-full border border-[#dfe5df]">{exportFormat === item ? <span className="size-[11px] rounded-full bg-[#216746]" /> : null}</span>
+                {item}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setExportOpen(false)}>Cancel</button>
-          <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={download}>Export</button>
-        </div>
+        <DialogActions>
+          <button type="button" className={quietButton} onClick={() => setExportOpen(false)}>Cancel</button>
+          <button type="button" className={primaryButton} onClick={download}>Export</button>
+        </DialogActions>
       </Modal>
 
-      <Modal open={inviteOpen} title="Invite member" description={`Send an administrator an invitation to ${portal.workspaceName}.`} onClose={() => setInviteOpen(false)}>
-        <form onSubmit={(event) => { event.preventDefault(); const message = portal.inviteMember(invite); if (message) { setError(message); return; } setInviteOpen(false); setInvite({ ...invite, email: "" }); }} className="space-y-3">
-          <Field label="Work email" error={error}><input className={inputClass} placeholder="name@company.com" value={invite.email} onChange={(event) => setInvite({ ...invite, email: event.target.value })} /></Field>
-          <Field label="Role">
-            <select className={inputClass} value={invite.roleId} onChange={(event) => setInvite({ ...invite, roleId: event.target.value })}>
-              {customRoles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
-            </select>
-          </Field>
-          <p className="text-sm text-[#4e6358]">The invitation grants access to this workspace only.</p>
-          <div className="flex justify-end gap-2"><button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setInviteOpen(false)}>Cancel</button><button type="submit" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white">Send invitation</button></div>
+      <Modal sheet open={inviteOpen} title="Invite member" description={`Send an administrator an invitation to ${portal.workspaceName}.`} onClose={() => setInviteOpen(false)}>
+        <form onSubmit={(event) => { event.preventDefault(); const message = portal.inviteMember(invite); if (message) { setError(message); return; } setInviteOpen(false); setInvite({ ...invite, email: "", employeeId: "" }); }}>
+          <MemberSearch
+            employees={portal.employees}
+            query={invite.email}
+            selectedId={invite.employeeId}
+            error={error}
+            onQuery={(email) => { setInvite((current) => ({ ...current, email })); setError(""); }}
+            onSelect={(person) => setInvite((current) => ({ ...current, employeeId: person?.id ?? "", email: person?.email ?? current.email }))}
+          />
+          <div className="mt-4">
+            <Field label="Role">
+              <select className={`${inputClass} rounded-[7px] border-[#dfe5df]`} value={invite.roleId} onChange={(event) => setInvite({ ...invite, roleId: event.target.value })}>
+                {assignableRoles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+              </select>
+            </Field>
+          </div>
+          <p className="mt-4 rounded-lg bg-[#f4f6f3] px-4 py-3 text-sm text-[#53675e]">The invitation grants access to this workspace only.</p>
+          <DialogActions>
+            <button type="button" className={quietButton} onClick={() => setInviteOpen(false)}>Cancel</button>
+            <button type="submit" className={primaryButton}>Send invitation</button>
+          </DialogActions>
         </form>
       </Modal>
 
-      <Modal open={Boolean(member)} title="Manage member" description="Update this administrator’s role or remove their portal access." onClose={() => setManageId(null)}>
+      <Modal sheet open={Boolean(member) && !removing} title="Manage member" description="Update this administrator’s role or remove their portal access." onClose={() => setManageId(null)}>
         {member ? (
-          <div className="space-y-3">
-            <p className="text-sm text-[#4e6358]">{member.name} · {member.email}</p>
-            <Field label="Role">
-              <select className={inputClass} value={nextRole} onChange={(event) => setNextRole(event.target.value)}>
-                {customRoles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
-              </select>
-            </Field>
-            {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-            <div className="flex flex-wrap justify-end gap-2">
-              <button type="button" className="h-10 rounded-lg border border-[#f3c7c7] px-3 text-sm text-[#b42318]" onClick={() => setRemoveId(member.id)}>Remove access</button>
-              {member.status === "Invited" ? <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => { portal.resendInvite(member.id); setManageId(null); }}>Resend invite</button> : null}
-              <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setManageId(null)}>Cancel</button>
-              <button type="button" className="h-10 rounded-lg bg-[#153a2b] px-3 text-sm font-medium text-white" onClick={() => { portal.updateMember(member.id, nextRole); setManageId(null); }}>Save changes</button>
+          <div>
+            <MemberRow name={member.name} />
+            <div className="mt-4">
+              <Field label="Role">
+                <select className={`${inputClass} rounded-[7px] border-[#dfe5df]`} value={nextRole} onChange={(event) => setNextRole(event.target.value)}>
+                  {assignableRoles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+                </select>
+              </Field>
             </div>
+            {error ? <p className="mt-2 text-sm text-[#b42318]">{error}</p> : null}
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button type="button" className={quietButton} onClick={() => setRemoveId(member.id)}><TrashIcon />Remove access</button>
+              {member.status === "Invited" ? <button type="button" className={quietButton} onClick={() => { portal.resendInvite(member.id); setManageId(null); }}><MailIcon />Resend invite</button> : null}
+            </div>
+            <DialogActions>
+              <button type="button" className={quietButton} onClick={() => setManageId(null)}>Cancel</button>
+              <button type="button" className={primaryButton} onClick={() => { portal.updateMember(member.id, nextRole); setManageId(null); }}>Save changes</button>
+            </DialogActions>
           </div>
         ) : null}
       </Modal>
-      <Modal open={Boolean(removing)} title="Remove access" description="This administrator will lose access to this employer portal." onClose={() => setRemoveId(null)}>
+      <Modal sheet open={Boolean(removing)} title="Remove access" description="This administrator will lose access to this employer portal." onClose={() => setRemoveId(null)}>
         {removing ? (
           <div>
-            <p className="text-sm font-medium text-[#162e25]">{removing.name}</p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button type="button" className="h-10 rounded-lg border border-[#e4e4e7] px-3 text-sm" onClick={() => setRemoveId(null)}>Keep access</button>
-              <button type="button" className="h-10 rounded-lg bg-[#b42318] px-3 text-sm font-medium text-white" onClick={() => { portal.removeMember(removing.id); setRemoveId(null); setManageId(null); }}>Remove access</button>
-            </div>
+            <MemberRow name={removing.name} />
+            <DialogActions>
+              <button type="button" className={quietButton} onClick={() => setRemoveId(null)}>Keep access</button>
+              <button type="button" className={dangerButton} onClick={() => { portal.removeMember(removing.id); setRemoveId(null); setManageId(null); }}>Remove access</button>
+            </DialogActions>
           </div>
         ) : null}
       </Modal>

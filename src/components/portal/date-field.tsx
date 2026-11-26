@@ -8,7 +8,7 @@ const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 const longMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
 
-export type DateFormat = "dmy" | "long" | "medium" | "dayMon" | "month" | "cutoff";
+export type DateFormat = "dmy" | "long" | "full" | "medium" | "dayMon" | "month" | "cutoff";
 
 function monthIndex(name: string) {
   return shortMonths.findIndex((item) => item.toLowerCase() === name.slice(0, 3).toLowerCase());
@@ -46,6 +46,7 @@ function formatPortalDate(date: Date, format: DateFormat) {
   const year = date.getFullYear();
   if (format === "dmy") return `${String(day).padStart(2, "0")}/${String(month + 1).padStart(2, "0")}/${year}`;
   if (format === "long") return `${shortMonths[month]} ${day}, ${year}`;
+  if (format === "full") return `${day} ${longMonths[month]} ${year}`;
   if (format === "dayMon") return `${day} ${shortMonths[month]}`;
   if (format === "month") return `${longMonths[month]} ${year}`;
   if (format === "cutoff") return `${day} ${shortMonths[month]} · 23:59 WAT`;
@@ -62,17 +63,23 @@ export function DateField({
   format = "medium",
   placeholder = "DD/MM/YYYY",
   className,
+  limitTo,
+  max,
 }: {
   value: string;
   onChange: (value: string) => void;
   format?: DateFormat;
   placeholder?: string;
   className?: string;
+  limitTo?: string;
+  max?: string;
 }) {
   const labelId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const parsed = parsePortalDate(value);
+  const limited = limitTo ? parsePortalDate(limitTo) : null;
+  const latest = max ? parsePortalDate(max) : null;
   const selected = format === "month" ? null : parsed;
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -118,13 +125,20 @@ export function DateField({
 
   function toggle() {
     const next = parsePortalDate(value);
-    setCursor(next ?? new Date(2026, 10, 1));
+    const start = limited ?? next ?? new Date(2026, 10, 1);
+    setCursor(start);
     placePopover();
     setOpen((current) => !current);
   }
 
-  const year = cursor.getFullYear();
-  const month = cursor.getMonth();
+  const year = limited ? limited.getFullYear() : cursor.getFullYear();
+  const month = limited ? limited.getMonth() : cursor.getMonth();
+  const nextMonthBlocked = Boolean(latest && new Date(year, month + 1, 1).getTime() > new Date(latest.getFullYear(), latest.getMonth(), latest.getDate()).getTime());
+
+  function afterLatest(date: Date) {
+    if (!latest) return false;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() > new Date(latest.getFullYear(), latest.getMonth(), latest.getDate()).getTime();
+  }
   const mondayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells: Array<Date | null> = [
@@ -156,15 +170,43 @@ export function DateField({
           ref={popoverRef}
           id={labelId}
           role="dialog"
-          aria-label={`${longMonths[month]} ${year} calendar`}
+          aria-label={format === "month" ? `${year} months` : `${longMonths[month]} ${year} calendar`}
           style={{ top: place.top, left: place.left, width: place.width }}
           className="fixed z-[80] max-w-[calc(100vw-16px)] rounded-xl border border-[#e7e9e9] bg-white p-3 shadow-[0_8px_24px_rgba(15,42,31,0.12)]"
         >
+          {format === "month" ? (
+            <>
+              <div className="flex items-center justify-center gap-1 px-1">
+                <button type="button" aria-label="Previous year" className="flex size-7 items-center justify-center rounded-md text-[#162e25] hover:bg-[#f4f5ef]" onClick={() => setCursor(new Date(year - 1, month, 1))}>‹</button>
+                <p className="min-w-16 text-center text-sm font-semibold text-[#162e25]">{year}</p>
+                <button type="button" aria-label="Next year" className="flex size-7 items-center justify-center rounded-md text-[#162e25] hover:bg-[#f4f5ef]" onClick={() => setCursor(new Date(year + 1, month, 1))}>›</button>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {longMonths.map((name, index) => {
+                  const active = parsed?.getFullYear() === year && parsed.getMonth() === index;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => {
+                        onChange(formatPortalDate(new Date(year, index, 1), "month"));
+                        setOpen(false);
+                      }}
+                      className={cn("h-9 rounded-md text-sm font-medium", active ? "bg-[#0f2a1f] text-[#fffff4]" : "bg-[#f8f9f6] text-[#162e25] hover:bg-[#eaf0ec]")}
+                    >
+                      {name.slice(0, 3)}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <>
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="flex items-center gap-1">
-              <button type="button" aria-label="Previous month" className="flex size-7 items-center justify-center rounded-md text-[#162e25] hover:bg-[#f4f5ef]" onClick={() => setCursor(new Date(year, month - 1, 1))}>‹</button>
+              {limited ? null : <button type="button" aria-label="Previous month" className="flex size-7 items-center justify-center rounded-md text-[#162e25] hover:bg-[#f4f5ef]" onClick={() => setCursor(new Date(year, month - 1, 1))}>‹</button>}
               <p className="text-sm font-semibold text-[#162e25]">{longMonths[month]} {year}</p>
-              <button type="button" aria-label="Next month" className="flex size-7 items-center justify-center rounded-md text-[#162e25] hover:bg-[#f4f5ef]" onClick={() => setCursor(new Date(year, month + 1, 1))}>›</button>
+              {limited ? null : <button type="button" aria-label="Next month" disabled={nextMonthBlocked} className="flex size-7 items-center justify-center rounded-md text-[#162e25] hover:bg-[#f4f5ef] disabled:pointer-events-none disabled:opacity-30" onClick={() => setCursor(new Date(year, month + 1, 1))}>›</button>}
             </div>
             <span className="text-xs text-[#526459]">Day of month</span>
           </div>
@@ -177,13 +219,15 @@ export function DateField({
                 <button
                   key={date.toISOString()}
                   type="button"
+                  disabled={afterLatest(date)}
                   onClick={() => {
+                    if (afterLatest(date)) return;
                     onChange(formatPortalDate(date, format));
                     setOpen(false);
                   }}
                   className={cn(
-                    "h-8 rounded-md text-sm font-medium",
-                    selected && sameDay(selected, date) ? "bg-[#0f2a1f] text-[#fffff4]" : "bg-[#f8f9f6] text-[#162e25] hover:bg-[#eaf0ec]",
+                    "h-8 rounded-md text-sm font-medium disabled:cursor-not-allowed disabled:bg-transparent disabled:text-[#c5cdc8]",
+                    selected && sameDay(selected, date) ? "bg-[#0f2a1f] text-[#fffff4]" : "bg-[#f8f9f6] text-[#162e25] hover:bg-[#eaf0ec] disabled:hover:bg-transparent",
                   )}
                 >
                   {date.getDate()}
@@ -191,6 +235,8 @@ export function DateField({
               ) : <span key={`empty-${index}`} />
             ))}
           </div>
+            </>
+          )}
         </div>,
         document.body,
       )

@@ -36,6 +36,7 @@ export function SetupActions({
   backLabel = "Back to setup",
   primary,
   onPrimary,
+  onBack,
   stretch = false,
   titleCase = false,
 }: {
@@ -43,17 +44,21 @@ export function SetupActions({
   backLabel?: string;
   primary: string;
   onPrimary: () => void;
+  onBack?: () => void;
   stretch?: boolean;
   titleCase?: boolean;
 }) {
   const backWidth = stretch ? "min-w-0 flex-1" : "w-full sm:w-[180px]";
   const primaryWidth = stretch ? "min-w-0 flex-1" : "w-full whitespace-nowrap sm:w-max sm:min-w-[180px]";
   const type = titleCase ? "font-medium capitalize" : "font-bold";
+  const backClass = cn("inline-flex h-11 items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] px-5 text-xs text-[#0f2a1f]", type, backWidth);
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
-      <Link href={backHref} className={cn("inline-flex h-11 items-center justify-center rounded-lg border border-[#dce4de] bg-[#f8f8f8] px-5 text-xs text-[#0f2a1f]", type, backWidth)}>
-        {backLabel}
-      </Link>
+      {onBack ? (
+        <button type="button" className={backClass} onClick={onBack}>{backLabel}</button>
+      ) : (
+        <Link href={backHref} className={backClass}>{backLabel}</Link>
+      )}
       <button type="button" onClick={onPrimary} className={cn("inline-flex h-11 items-center justify-center rounded-lg bg-[#0f2a1f] px-5 text-xs text-[#fffff4]", type, primaryWidth)}>
         {primary}
       </button>
